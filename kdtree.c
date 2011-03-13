@@ -241,8 +241,9 @@ KDTreeNode_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 	self = (KDTreeNode *)type->tp_alloc(type, 0);
 	if (self != NULL) {
-		/* TODO do we need a decref on the Py_None objects? */
+		Py_INCREF(Py_None);
 		self->left = Py_None;
+		Py_INCREF(Py_None);
 		self->right = Py_None;
 		self->xcoord = 0.0;
 		self->ycoord = 0.0;
