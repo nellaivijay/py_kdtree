@@ -1,0 +1,10 @@
+The docs at http://docs.python.org/install/index.html hold a lot of details about
+installing extensions, but here is the short version:
+
+To build into a "build" folder for local use:
+
+python kdtree_setup.py build
+
+Installing system-wide:
+
+python kdtree_setup.py install
