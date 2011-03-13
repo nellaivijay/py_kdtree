@@ -233,7 +233,7 @@ KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure)
     return -1;
   }
   
-	if (!PyObject_TypeCheck(value, &KDTreeNodeType)) {
+	if (value != Py_None && !PyObject_TypeCheck(value, &KDTreeNodeType)) {
     PyErr_SetString(PyExc_TypeError, 
                     "The left attribute value must be a KDTreeNode");
     return -1;
@@ -261,7 +261,7 @@ KDTreeNode_setright(KDTreeNode *self, PyObject *value, void *closure)
     return -1;
   }
   
-	if (!PyObject_TypeCheck(value, &KDTreeNodeType)) {
+	if (value != Py_None && !PyObject_TypeCheck(value, &KDTreeNodeType)) {
     PyErr_SetString(PyExc_TypeError, 
                     "The right attribute value must be a KDTreeNode");
     return -1;
