@@ -314,35 +314,7 @@ static PyGetSetDef KDTreeNode_getseters[] = {
 	{NULL}  /* Sentinel */
 };
 
-
-static PyObject *
-KDTreeNode_point(KDTreeNode* self) {
-	static PyObject *format = NULL;
-	PyObject *args, *result;
-
-	if (format == NULL) {
-		format = PyString_FromString("%d %d");
-		if (format == NULL) {
-			return NULL;
-		}
-	}
-
-	args = Py_BuildValue("dd", self->xcoord, self->ycoord);
-
-	if (args == NULL) {
-		return NULL;
-	}
-
-	result = PyString_Format(format, args);
-	Py_DECREF(args);
-	
-	return result;
-}
-
 static PyMethodDef KDTreeNode_methods[] = {
-	{"point", (PyCFunction)KDTreeNode_point, METH_NOARGS,
-	 "Return the points as a string"
-	},
 	{"run_nn_search", (PyCFunction)KDTreeNode_run_nn_search, METH_VARARGS,
 	 "Runs a nearest-neighbor search"
 	},
