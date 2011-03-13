@@ -1,5 +1,12 @@
+/*
+ * Copyright 2011 Chris M Bouzek
+ */
 #include <Python.h>
 #include "structmember.h"
+
+#define LIMIT 3
+
+/* Structs */
 
 typedef struct {
     PyObject_HEAD
@@ -9,6 +16,11 @@ typedef struct {
 		double ycoord;
     int number;
 } KDTreeNode;
+
+struct best_pair {
+	int node_num;
+	double dist;
+};
 
 /* prototypes */
 
@@ -23,6 +35,153 @@ KDTreeNode_getleft(KDTreeNode *self, void *closure);
 
 static int
 KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure);
+
+static PyObject *
+KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args);
+
+/* Utility functions */
+
+/* Determine the largest element in the best neighbors array*/
+static double largest_dist(struct best_pair best[], int count) {
+  if (count < 1) {
+    return -1;
+	}
+  if (count < LIMIT) {
+    return best[count - 1].dist;
+	}
+  /* 2 = 3 - 1 */
+  return best[LIMIT - 1].dist;
+}
+
+static double sqdist(double ax, double bx, double ay, double by) {
+	double diffx = ax - bx;
+	double diffy = ay - by;
+	return (diffx * diffx) + (diffy * diffy);
+}
+
+/* Functions directly related to KD-tree functionality */
+
+/* Adds the point to the list of best nodes if it is closer than the current best
+   list. */
+static int add_best(
+		int count, 
+		double nodepoint[], 
+		int node_num, 
+		double point[], 
+		struct best_pair best[]) {
+	/*(count, nodepoint, node_num, point, point_num, best)*/
+  /* due to the constraints of the problem, we need to check each node
+     before assigning it as the final best choice to ensure it is not
+     equal to the searched-for point
+	*/
+
+	double sd = sqdist(nodepoint[0], nodepoint[1], point[0], point[1]);
+	int last_idx;
+	if (count < LIMIT) {
+		last_idx = count;
+	} else {
+		last_idx = count - 1;
+	}
+
+	int idx;
+	struct best_pair candidate;
+	candidate.node_num = node_num;
+	candidate.dist = sd;
+
+	struct best_pair pair;
+	/* search through linearly to maintain sorted order */
+	for (idx = 0; idx < count; idx++) {
+		pair = best[idx];
+		if (pair.dist > sd) {
+			/* push elements down */
+			int x;
+			/*free(best[last_idx]);*/
+			for (x = last_idx; x > idx; x--) {
+				best[x] = best[x - 1];
+			}
+			/* TODO does this need to be allocated on the heap? */
+			best[idx] = candidate;
+			return last_idx + 1;
+		}
+	}
+
+	if (count < LIMIT) {
+		/* didn't find an insert spot, so insert at the end */
+		best[count] = candidate;
+		return last_idx + 1;
+	}
+  return count;
+}
+
+/* Searches for nearest neighbor of point using node as the root. */
+static int nn_search(
+		KDTreeNode *node, 
+		int point_num,
+		double search_x,
+		double search_y,
+		struct best_pair best[], 
+		int count, 
+		int axis) {
+  if (Py_None == (PyObject *)node) {
+    return count;
+	}
+
+	int cnt = count;
+  double nodepoint[2];
+	nodepoint[0] = node->xcoord;
+	nodepoint[1] = node->ycoord;
+	double point[2];
+	point[0] = search_x;
+	point[1] = search_y;
+	int node_num = node->number;
+
+	if (Py_None == node->left && Py_None == node->right) {
+    if (node_num != point_num) {
+      cnt = add_best(cnt, nodepoint, node_num, point, best);
+		}
+    return cnt;
+	}
+
+  /* Normally we'd select axis based on depth so that axis cycles through 
+     all valid values.  Here we know we have 2-dimensional values, so don't 
+     waste time calculating, but just alternate
+     axis = depth % len(point) */
+
+  /* compare query point and current node along the axis to see which tree is
+     far and which is near */
+
+	KDTreeNode *near;
+	KDTreeNode *far;
+  if (point[axis] < nodepoint[axis]) {
+    near = (KDTreeNode *)node->left;
+    far = (KDTreeNode *)node->right;
+	} else {
+    near = (KDTreeNode *)node->right;
+    far = (KDTreeNode *)node->left;
+	}
+
+  /* search the near branch */
+  int next_axis;
+	if (1 == axis) {
+		next_axis = 0;
+	} else {
+		next_axis = 1;
+	}
+  cnt = nn_search(near, point_num, search_x, search_y, best, cnt, next_axis);
+
+  /* If the current node is closer overall than the current best */
+  if (node_num != point_num) {
+    cnt = add_best(cnt, nodepoint, node_num, point, best);
+	}
+
+  /* maybe search the away branch */
+  int largest = largest_dist(best, cnt);
+	double point_dist = nodepoint[axis] - point[axis];
+  if ((-1 == largest) || (point_dist * point_dist < largest)) {
+    cnt = nn_search(far, point_num, search_x, search_y, best, cnt, next_axis);
+	}
+  return cnt;
+}
 
 /* Ref counting cycle detection */
 static int
@@ -173,6 +332,9 @@ static PyMethodDef KDTreeNode_methods[] = {
 	{"point", (PyCFunction)KDTreeNode_point, METH_NOARGS,
 	 "Return the points as a string"
 	},
+	{"run_nn_search", (PyCFunction)KDTreeNode_run_nn_search, METH_VARARGS,
+	 "Runs a nearest-neighbor search"
+	},
 	{NULL}  /* Sentinel */
 };
 
@@ -217,6 +379,26 @@ static PyTypeObject KDTreeNodeType = {
 	0,                         /* tp_alloc */
 	KDTreeNode_new,                 /* tp_new */
 };
+
+/* Initializes the nearest neighbor search point and starts the search.
+ * call it like run_nn_search(kdtree_node, search_num, (search_x, search_y))
+ */
+static PyObject *
+KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args) {
+	/* The number of the node we are running the nearest neighbor search on */
+	int search_num; 
+	/* The X,Y coordinates of the node we are running nearest neighbor search on */
+	double search_x;
+	double search_y;
+	if(!PyArg_ParseTuple(args, "i(dd)", &search_num, &search_x, &search_y)) {
+		return NULL;
+	}
+
+	struct best_pair best[LIMIT];
+	int count = nn_search(
+			self, search_num, search_x, search_y, best, 0, 0);
+	return PyInt_FromLong(count);
+}
 
 static PyObject *
 KDTreeNode_getleft(KDTreeNode *self, void *closure)
