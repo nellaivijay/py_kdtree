@@ -190,7 +190,7 @@ static int nn_search(
 	if (Py_None != (PyObject *) far) {
 		double largest = largest_dist(best, cnt);
 		int search_other = 0;
-		if (largest == -1) {
+		if (largest < 0) {
 			search_other = 1;
 		} else {
 			double diff = nodepoint[axis] - point[axis];
