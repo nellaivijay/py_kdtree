@@ -96,6 +96,26 @@ KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
 			PyErr_SetString(PyExc_TypeError, "coords must be a tuple");
 			return -1;
 		}
+		PyObject *xcoord;
+		xcoord = PyTuple_GetItem((PyObject *)coords, 0);
+
+		if (!PyFloat_Check(xcoord)) {
+			PyErr_SetString(PyExc_TypeError, "X coordinate must be a float");
+			Py_XDECREF(xcoord);
+			return -1;
+		}
+		Py_XDECREF(xcoord);
+
+		PyObject *ycoord;
+		ycoord = PyTuple_GetItem((PyObject *)coords, 1);
+
+		if (!PyFloat_Check(ycoord)) {
+			PyErr_SetString(PyExc_TypeError, "Y coordinate must be a float");
+			Py_XDECREF(ycoord);
+			return -1;
+		}
+		Py_XDECREF(ycoord);
+
 		ctmp = self->coords;
 		Py_INCREF(coords);
 		self->coords = coords;
@@ -125,8 +145,6 @@ static PyMemberDef KDTreeNode_members[] = {
 	 "left node"},
 	{"right", T_OBJECT_EX, offsetof(KDTreeNode, right), 0,
 	 "right node"},
-	{"coords", T_OBJECT_EX, offsetof(KDTreeNode, coords), 0,
-	 "X,Y node coordinates"},
 	{"number", T_INT, offsetof(KDTreeNode, number), 0,
 	 "kd-tree node number"},
 	{NULL}  /* Sentinel */
@@ -169,6 +187,61 @@ KDTreeNode_point(KDTreeNode* self) {
 	return result;
 }
 
+static PyTupleObject *
+KDTreeNode_getcoords(KDTreeNode *self, void *closure) {
+	Py_INCREF(self->coords);
+	return self->coords;
+}
+
+static int
+KDTreeNode_setcoords(KDTreeNode *self, PyTupleObject *coords, void *closure) {
+  if (coords == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot set coordinates to null.");
+    return -1;
+  }
+
+	if (!PyTuple_Check(coords)) {
+		PyErr_SetString(PyExc_TypeError, "coords must be a tuple");
+		return -1;
+	}
+	PyObject *xcoord;
+	xcoord = PyTuple_GetItem((PyObject *)coords, 0);
+
+	if (!PyFloat_Check(xcoord)) {
+		PyErr_SetString(PyExc_TypeError, "X coordinate must be a float");
+		Py_XDECREF(xcoord);
+		return -1;
+	}
+	Py_XDECREF(xcoord);
+
+	PyObject *ycoord;
+	ycoord = PyTuple_GetItem((PyObject *)coords, 1);
+
+	if (!PyFloat_Check(ycoord)) {
+		PyErr_SetString(PyExc_TypeError, "Y coordinate must be a float");
+		Py_XDECREF(ycoord);
+		return -1;
+	}
+	Py_XDECREF(ycoord);
+
+	PyTupleObject *ctmp;
+	ctmp = self->coords;
+	Py_INCREF(coords);
+	self->coords = coords;
+	Py_XDECREF(ctmp);
+  
+  return 0;
+}
+
+static PyGetSetDef KDTreeNode_getseters[] = {
+	{"coords", 
+	 (getter)KDTreeNode_getcoords, (setter)KDTreeNode_setcoords,
+	 "coordinates",
+	 NULL},
+	{NULL}  /* Sentinel */
+};
+
+
 static PyMethodDef KDTreeNode_methods[] = {
 	{"point", (PyCFunction)KDTreeNode_point, METH_NOARGS,
 	 "Return the points as a string"
@@ -207,7 +280,7 @@ static PyTypeObject KDTreeNodeType = {
 	0,		               /* tp_iternext */
 	KDTreeNode_methods,             /* tp_methods */
 	KDTreeNode_members,             /* tp_members */
-	0,                         /* tp_getset */
+	KDTreeNode_getseters,      /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */
 	0,                         /* tp_descr_get */
