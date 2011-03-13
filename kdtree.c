@@ -43,14 +43,11 @@ KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args);
 
 /* Determine the largest element in the best neighbors array*/
 static double largest_dist(struct best_pair best[], int count) {
-  if (count < 1) {
-    return -1;
+	double largest = -1;
+	if (count > 0) {
+		largest = best[count - 1].dist;
 	}
-  if (count < LIMIT) {
-    return best[count - 1].dist;
-	}
-  /* 2 = 3 - 1 */
-  return best[LIMIT - 1].dist;
+	return largest;
 }
 
 static double sqdist(double ax, double bx, double ay, double by) {
@@ -75,7 +72,7 @@ static int add_best(
      equal to the searched-for point
 	*/
 
-	double sd = sqdist(nodepoint[0], nodepoint[1], point[0], point[1]);
+	double sd = sqdist(nodepoint[0], point[0], nodepoint[1], point[1]);
 	int last_idx;
 	if (count < LIMIT) {
 		last_idx = count;
@@ -107,7 +104,7 @@ static int add_best(
 
 	if (count < LIMIT) {
 		/* didn't find an insert spot, so insert at the end */
-		best[count] = candidate;
+		best[last_idx] = candidate;
 		return last_idx + 1;
 	}
   return count;
@@ -167,7 +164,10 @@ static int nn_search(
 	} else {
 		next_axis = 1;
 	}
-  cnt = nn_search(near, point_num, search_x, search_y, best, cnt, next_axis);
+
+	if (Py_None != (PyObject *) near) {
+	  cnt = nn_search(near, point_num, search_x, search_y, best, cnt, next_axis);
+	}
 
   /* If the current node is closer overall than the current best */
   if (node_num != point_num) {
@@ -175,10 +175,20 @@ static int nn_search(
 	}
 
   /* maybe search the away branch */
-  int largest = largest_dist(best, cnt);
-	double point_dist = nodepoint[axis] - point[axis];
-  if ((-1 == largest) || (point_dist * point_dist < largest)) {
-    cnt = nn_search(far, point_num, search_x, search_y, best, cnt, next_axis);
+	if (Py_None != (PyObject *) far) {
+		double largest = largest_dist(best, cnt);
+		int search_other = 0;
+		if (largest == -1) {
+			search_other = 1;
+		} else {
+			double diff = nodepoint[axis] - point[axis];
+			if ((diff * diff) < largest) {
+				search_other = 1;
+			}
+		}
+		if (1 == search_other) {
+			cnt = nn_search(far, point_num, search_x, search_y, best, cnt, next_axis);
+		}
 	}
   return cnt;
 }
@@ -395,21 +405,30 @@ KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args) {
 	}
 
 	struct best_pair best[LIMIT];
-	int count = nn_search(
-			self, search_num, search_x, search_y, best, 0, 0);
-	return PyInt_FromLong(count);
+	nn_search(self, search_num, search_x, search_y, best, 0, 0);
+
+	int i;
+	PyObject *best_list;
+	best_list = PyList_New(LIMIT);
+	for (i = 0; i < LIMIT; i++) {
+		/* PyList_SetItem steals the reference, so no need to explicitly decrement it */
+		if (!PyList_SetItem(best_list, i, PyInt_FromLong(best[i].node_num))) {
+			/* TODO return error */
+		}
+	}
+
+	Py_INCREF(best_list);
+	return best_list;
 }
 
 static PyObject *
-KDTreeNode_getleft(KDTreeNode *self, void *closure)
-{
+KDTreeNode_getleft(KDTreeNode *self, void *closure) {
 	Py_INCREF(self->left);
 	return self->left;
 }
 
 static int
-KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure)
-{
+KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure) {
   if (value == NULL) {
     PyErr_SetString(PyExc_TypeError, "Cannot delete the left attribute");
     return -1;
