@@ -10,6 +10,20 @@ typedef struct {
     int number;
 } KDTreeNode;
 
+/* prototypes */
+
+static PyObject *
+KDTreeNode_getright(KDTreeNode *self, void *closure);
+
+static int
+KDTreeNode_setright(KDTreeNode *self, PyObject *value, void *closure);
+
+static PyObject *
+KDTreeNode_getleft(KDTreeNode *self, void *closure);
+
+static int
+KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure);
+
 /* Ref counting cycle detection */
 static int
 KDTreeNode_traverse(KDTreeNode *self, visitproc visit, void *arg) {
@@ -109,10 +123,6 @@ KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
 }
 
 static PyMemberDef KDTreeNode_members[] = {
-	{"left", T_OBJECT_EX, offsetof(KDTreeNode, left), 0,
-	 "left node"},
-	{"right", T_OBJECT_EX, offsetof(KDTreeNode, right), 0,
-	 "right node"},
 	{"xcoord", T_DOUBLE, offsetof(KDTreeNode, xcoord), 0,
 	 "X coordinate"},
 	{"ycoord", T_DOUBLE, offsetof(KDTreeNode, ycoord), 0,
@@ -121,6 +131,19 @@ static PyMemberDef KDTreeNode_members[] = {
 	 "kd-tree node number"},
 	{NULL}  /* Sentinel */
 };
+
+static PyGetSetDef KDTreeNode_getseters[] = {
+	{"left", 
+	 (getter)KDTreeNode_getleft, (setter)KDTreeNode_setleft,
+	 "left node",
+	 NULL},
+	{"right", 
+	 (getter)KDTreeNode_getright, (setter)KDTreeNode_setright,
+	 "right node",
+	 NULL},
+	{NULL}  /* Sentinel */
+};
+
 
 static PyObject *
 KDTreeNode_point(KDTreeNode* self) {
@@ -184,7 +207,7 @@ static PyTypeObject KDTreeNodeType = {
 	0,		               /* tp_iternext */
 	KDTreeNode_methods,             /* tp_methods */
 	KDTreeNode_members,             /* tp_members */
-	0,                         /* tp_getset */
+	KDTreeNode_getseters,     /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */
 	0,                         /* tp_descr_get */
@@ -194,6 +217,62 @@ static PyTypeObject KDTreeNodeType = {
 	0,                         /* tp_alloc */
 	KDTreeNode_new,                 /* tp_new */
 };
+
+static PyObject *
+KDTreeNode_getleft(KDTreeNode *self, void *closure)
+{
+	Py_INCREF(self->left);
+	return self->left;
+}
+
+static int
+KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure)
+{
+  if (value == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot delete the left attribute");
+    return -1;
+  }
+  
+	if (!PyObject_TypeCheck(value, &KDTreeNodeType)) {
+    PyErr_SetString(PyExc_TypeError, 
+                    "The left attribute value must be a KDTreeNode");
+    return -1;
+  }
+      
+  Py_DECREF(self->left);
+  Py_INCREF(value);
+  self->left = value;    
+
+  return 0;
+}
+
+static PyObject *
+KDTreeNode_getright(KDTreeNode *self, void *closure)
+{
+	Py_INCREF(self->right);
+	return self->right;
+}
+
+static int
+KDTreeNode_setright(KDTreeNode *self, PyObject *value, void *closure)
+{
+  if (value == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot delete the right attribute");
+    return -1;
+  }
+  
+	if (!PyObject_TypeCheck(value, &KDTreeNodeType)) {
+    PyErr_SetString(PyExc_TypeError, 
+                    "The right attribute value must be a KDTreeNode");
+    return -1;
+  }
+      
+  Py_DECREF(self->right);
+  Py_INCREF(value);
+  self->right = value;    
+
+  return 0;
+}
 
 static PyMethodDef module_methods[] = {
 	{NULL}  /* Sentinel */
