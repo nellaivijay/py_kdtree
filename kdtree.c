@@ -62,6 +62,20 @@ static double largest_dist(struct best_pair best[], int count) {
 	return largest;
 }
 
+/*
+ * Choose the next axis to use based on the current axis.
+ */
+static int pick_axis(int axis) {
+  /* search the near branch */
+  int next_axis;
+	if (1 == axis) {
+		next_axis = 0;
+	} else {
+		next_axis = 1;
+	}
+	return next_axis;
+}
+
 static double sqdist(double ax, double bx, double ay, double by) {
 	double diffx = ax - bx;
 	double diffy = ay - by;
@@ -170,12 +184,7 @@ static int nn_search(
 	}
 
   /* search the near branch */
-  int next_axis;
-	if (1 == axis) {
-		next_axis = 0;
-	} else {
-		next_axis = 1;
-	}
+  int next_axis = pick_axis(axis);
 
 	if (Py_None != (PyObject *) near) {
 	  cnt = nn_search(near, point_num, search_x, search_y, best, cnt, next_axis);
@@ -267,7 +276,7 @@ KDTreeNode_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 static int
 KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
-	PyObject *left=NULL, *right=NULL, *tmp;
+	PyObject *left=NULL, *right=NULL;
 
 	static char *kwlist[] = {"number", "coords", "left", "right", NULL};
 
@@ -287,17 +296,15 @@ KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
 	 * on the left and right */
 
 	if (left) {
-		tmp = self->left;
-		Py_INCREF(left);
-		self->left = left;
-		Py_XDECREF(tmp);
+		if (0 != KDTreeNode_setleft(self, left, NULL)) {
+			return -1;
+		}
 	}
 
 	if (right) {
-		tmp = self->right;
-		Py_INCREF(right);
-		self->right = right;
-		Py_XDECREF(tmp);
+		if (0 != KDTreeNode_setright(self, right, NULL)) {
+			return -1;
+		}
 	}
 
 
@@ -424,11 +431,14 @@ KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure) {
                     "The left attribute value must be a KDTreeNode");
     return -1;
   }
-      
-  Py_DECREF(self->left);
-  Py_INCREF(value);
-  self->left = value;    
 
+	PyObject *tmp;
+
+	tmp = self->left;
+	Py_INCREF(value);
+  self->left = value;    
+	Py_XDECREF(tmp);
+      
   return 0;
 }
 
@@ -452,10 +462,12 @@ KDTreeNode_setright(KDTreeNode *self, PyObject *value, void *closure)
                     "The right attribute value must be a KDTreeNode");
     return -1;
   }
-      
-  Py_DECREF(self->right);
-  Py_INCREF(value);
+	PyObject *tmp;
+
+	tmp = self->right;
+	Py_INCREF(value);
   self->right = value;    
+	Py_XDECREF(tmp);
 
   return 0;
 }
