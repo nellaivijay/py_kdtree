@@ -24,8 +24,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *left;
     PyObject *right;
-		double xcoord;
-		double ycoord;
+		double coords[2];
     int number;
 } KDTreeNode;
 
@@ -50,6 +49,12 @@ KDTreeNode_setleft(KDTreeNode *self, PyObject *value, void *closure);
 
 static PyObject *
 KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args);
+
+static int
+KDTreeNode_setcoords(KDTreeNode *self, PyObject *value, void *closure);
+
+static PyObject *
+KDTreeNode_getcoords(KDTreeNode *self, void *closure);
 
 /* Utility functions */
 
@@ -81,6 +86,16 @@ static double sqdist(double ax, double bx, double ay, double by) {
 	double diffy = ay - by;
 	return (diffx * diffx) + (diffy * diffy);
 }
+
+/*static void fill_tree(double points[][], int num_points, int axis) {
+	int median = num_points / 2;
+	int num_points_next = num_points - median;
+  int next_axis = pick_axis(axis);
+	KDTreeNode* node;
+	node->left = kd_tree(points[0:median], next_axis);
+	node->left = kd_tree(points[median + 1:], next_axis);
+	return node;
+}*/
 
 /* Functions directly related to KD-tree functionality */
 
@@ -150,9 +165,7 @@ static int nn_search(
 	}
 
 	int cnt = count;
-  double nodepoint[2];
-	nodepoint[0] = node->xcoord;
-	nodepoint[1] = node->ycoord;
+  double *nodepoint = node->coords;
 	double point[2];
 	point[0] = search_x;
 	point[1] = search_y;
@@ -250,6 +263,7 @@ KDTreeNode_clear(KDTreeNode *self) {
 	return 0;
 }
 
+/* Constructors, initializers, and destructors */
 static void
 KDTreeNode_dealloc(KDTreeNode* self) {
 	KDTreeNode_clear(self);
@@ -266,8 +280,8 @@ KDTreeNode_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 		self->left = Py_None;
 		Py_INCREF(Py_None);
 		self->right = Py_None;
-		self->xcoord = 0.0;
-		self->ycoord = 0.0;
+		self->coords[0] = 0.0;
+		self->coords[1] = 0.0;
 		self->number = 0;
 	}
 
@@ -276,14 +290,13 @@ KDTreeNode_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 static int
 KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
-	PyObject *left=NULL, *right=NULL;
+	PyObject *left=NULL, *right=NULL, *coords;
 
 	static char *kwlist[] = {"number", "coords", "left", "right", NULL};
 
-	if (! PyArg_ParseTupleAndKeywords(args, kwds, "i(dd)|OO", kwlist, 
+	if (! PyArg_ParseTupleAndKeywords(args, kwds, "iO|OO", kwlist, 
 																		&self->number, 
-																		&self->xcoord, &self->ycoord, 
-																		&left, &right)) {
+																		&coords, &left, &right)) {
 		return -1; 
 	}
 
@@ -307,15 +320,14 @@ KDTreeNode_init(KDTreeNode *self, PyObject *args, PyObject *kwds) {
 		}
 	}
 
+	if (0 != KDTreeNode_setcoords(self, coords, NULL)) {
+		return -1;
+	}
 
 	return 0;
 }
 
 static PyMemberDef KDTreeNode_members[] = {
-	{"xcoord", T_DOUBLE, offsetof(KDTreeNode, xcoord), 0,
-	 "X coordinate"},
-	{"ycoord", T_DOUBLE, offsetof(KDTreeNode, ycoord), 0,
-	 "Y coordinate"},
 	{"number", T_INT, offsetof(KDTreeNode, number), 0,
 	 "kd-tree node number"},
 	{NULL}  /* Sentinel */
@@ -329,6 +341,10 @@ static PyGetSetDef KDTreeNode_getseters[] = {
 	{"right", 
 	 (getter)KDTreeNode_getright, (setter)KDTreeNode_setright,
 	 "right node",
+	 NULL},
+	{"coords", 
+	 (getter)KDTreeNode_getcoords, (setter)KDTreeNode_setcoords,
+	 "node coordinates",
 	 NULL},
 	{NULL}  /* Sentinel */
 };
@@ -413,6 +429,7 @@ KDTreeNode_run_nn_search(KDTreeNode *self, PyObject *args) {
 	return best_list;
 }
 
+/* getters and setters */
 static PyObject *
 KDTreeNode_getleft(KDTreeNode *self, void *closure) {
 	Py_INCREF(self->left);
@@ -472,6 +489,60 @@ KDTreeNode_setright(KDTreeNode *self, PyObject *value, void *closure)
   return 0;
 }
 
+static PyObject *
+KDTreeNode_getcoords(KDTreeNode *self, void *closure) {
+	/*PyObject *coords;
+	coords = Py_BuildValue("(OO)", PyFloat_FromDouble(self->coords[0]), PyFloat_FromDouble(self->coords[1]));
+	Py_INCREF(coords);*/
+
+	PyObject *coords = PyTuple_New(2);
+	if (!coords) {
+		return PyErr_Format(PyExc_TypeError, "Unable to allocate coords tuple.");
+	}
+
+	int i;
+	for (i = 0; i < 2; i++) {
+		PyTuple_SET_ITEM(coords, i, PyFloat_FromDouble(self->coords[i]));
+	}
+	return coords;
+}
+
+static int
+KDTreeNode_setcoords(KDTreeNode *self, PyObject *value, void *closure) {
+  if (value == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot delete the coords attribute");
+    return -1;
+  }
+
+	if (!PyTuple_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, 
+                    "The coords value must be a tuple of doubles.");
+    return -1;
+  }
+
+	Py_ssize_t coord_len = PyTuple_Size(value);
+	int i;
+	PyObject * tcoord;
+	for (i = 0; i < 2/*coord_len*/; i++) {
+		/* PyTuple_GetItem is a borrowed reference, so don't DECREF it */
+		tcoord = PyTuple_GetItem(value, i);
+		if (!tcoord) {
+			/* let PyTuple_GetItem handle the error. */
+			return -1;
+		}
+		if (!PyFloat_Check(tcoord)) {
+			PyErr_SetString(PyExc_TypeError, 
+				              "The coords value must be a tuple of doubles.");
+			return -1;
+		}
+
+		double coord = PyFloat_AsDouble(tcoord);
+		self->coords[i] = coord;
+	}
+
+  return 0;
+}
+
 static PyMethodDef module_methods[] = {
 	{NULL}  /* Sentinel */
 };
@@ -497,4 +568,3 @@ initkdtree(void) {
 	Py_INCREF(&KDTreeNodeType);
 	PyModule_AddObject(m, "KDTreeNode", (PyObject *)&KDTreeNodeType);
 }
-
