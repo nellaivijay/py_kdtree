@@ -105,7 +105,7 @@ cdef class KDTreeNode:
     if NULL == self.root:
       self.root = fill_tree(pointList, 0)
 
-  def run_nn_search(self, point_num, search):
+  cpdef run_nn_search(self, int point_num, search):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'point_num' and search coordinates 'search'."""
     cdef int number = point_num
