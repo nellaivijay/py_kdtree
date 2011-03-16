@@ -1,5 +1,17 @@
 #!/usr/bin/python
-# Author: Chris M Bouzek
+# Copyright 2011 Chris M Bouzek
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the version 3 of the GNU Lesser General Public License
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cdef extern from "kdtree_raw.h":
   struct kdtree_node:
@@ -19,15 +31,16 @@ cdef extern from "stdlib.h":
   void* malloc(size_t size)
 
 def axis0PointKey(point):
-    return point[1][0]
+  """Sort for axis zero (i.e. X axis)"""
+  return point[1][0]
 
 def axis1PointKey(point):
+  """Sort for axis one (i.e. Y axis)"""
     return point[1][1]
 
 
-# Constructs a KD-tree and returns the root node.  pointList is a tuple of
-# (ID, [x,y])
 cdef kdtree_node * fill_tree(pointList, int axis):
+  """ Constructs a KD-tree and returns the root node.  pointList is a tuple of (ID, [x,y])"""
   if not pointList:
     return NULL
 
