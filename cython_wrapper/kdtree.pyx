@@ -75,6 +75,19 @@ cdef class KDTreeNode:
     def __get__(self):
       return self.right
 
+  cpdef run_nn_search(self, int search_num, search):
+    """Runs a nearest neighbor search on the given point, which is defined
+    by the point number 'search_num' and search coordinates 'search'."""
+    best = [BestPair(-1, -1)] * 3
+    cdef double search_arr[2]
+    search_arr[0] = search[0]
+    search_arr[1] = search[1]
+    nn_search(self, search_num, search_arr, best, 0, 0)
+    output = []
+    for x in best:
+      output.append(x.node_num)
+    return output
+
 def axis0PointKey(point):
   """Sort for axis zero (i.e. X axis)"""
   return point[1][0]
@@ -82,7 +95,6 @@ def axis0PointKey(point):
 def axis1PointKey(point):
   """Sort for axis one (i.e. Y axis)"""
   return point[1][1]
-
 
 cpdef KDTreeNode kdtree(pointList, int axis):
   """Constructs a KD-tree and returns the root node.  pointList is a tuple of (ID, [x,y])"""
@@ -115,32 +127,22 @@ cpdef KDTreeNode kdtree(pointList, int axis):
   node.right = right
   return node
 
-cpdef run_nn_search(KDTreeNode root, int search_num, \
-                     double search_x, double search_y):
-  """Runs a nearest neighbor search on the given point, which is defined
-  by the point number 'point_num' and search coordinates 'search'."""
-  best = [BestPair(-1, -1)] * 3
-  nn_search(root, search_num, search_x, search_y, best, 0, 0)
-  output = []
-  for x in best:
-    output.append(x.node_num)
-  return output
 
 # Searches for nearest neighbor of point using node as the root.
-cdef int nn_search(KDTreeNode node, int point_num, double point_x, \
-                    double point_y, best, int count, int axis) except? -2:
+cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int count, int axis) except? -2:
   """Runs a nearest neighbor search on the given point, which is defined
-  by the point number 'point_num' and search coordinates 'search'."""
+  by the point number 'search_num' and search coordinates 'search'."""
   if node is None:
     return count
 
   cdef int node_num = node.number
-  cdef double node_x = node.xcoord
-  cdef double node_y = node.ycoord
+  cdef double nodepoint[2]
+  nodepoint[0] = node.xcoord
+  nodepoint[1] = node.ycoord
 
   if node.left is None and node.right is None:
-    if node_num != point_num:
-      count = add_best(count, node_x, node_y, node_num, point_x, point_y, best)
+    if node_num != search_num:
+      count = add_best(count, nodepoint, node_num, search, best)
     return count
 
   # Normally we'd elect axis based on depth so that axis cycles through 
@@ -151,16 +153,7 @@ cdef int nn_search(KDTreeNode node, int point_num, double point_x, \
   # compare query point and current node along the axis to see which tree is
   # far and which is near
 
-  cdef double node_axis
-  cdef double point_axis
-  if axis == 0:
-    node_axis = node_x
-    point_axis = point_x
-  else:
-    node_axis = node_y
-    point_axis = point_y
-
-  if point_axis < node_axis:
+  if search[axis] < nodepoint[axis]:
     near = node.left
     far = node.right
   else:
@@ -172,11 +165,11 @@ cdef int nn_search(KDTreeNode node, int point_num, double point_x, \
   if 1 == axis:
     next_axis = 0
   if near is not None:
-    count = nn_search(near, point_num, point_x, point_y, best, count, next_axis)
+    count = nn_search(near, search_num, search, best, count, next_axis)
 
   # If the current node is closer overall than the current best
-  if node_num != point_num:
-    count = add_best(count, node_x, node_y, node_num, point_x, point_y, best)
+  if node_num != search_num:
+    count = add_best(count, nodepoint, node_num, search, best)
 
   cdef double largest
   cdef BestPair bp
@@ -195,30 +188,30 @@ cdef int nn_search(KDTreeNode node, int point_num, double point_x, \
     if largest < 0:
       search_other = 1
     else:
-      diff = node_axis - point_axis
+      diff = nodepoint[axis] - search[axis]
       sq_diff = diff * diff
       if sq_diff < largest:
         search_other = 1
     if 1 == search_other:
-      count = nn_search(far, point_num, point_x, point_y, best, count, next_axis)
+      count = nn_search(far, search_num, search, best, count, next_axis)
   return count
 
-cdef inline double sqdist(double x1, double y1, double x2, double y2) except? -2:
-  cdef double diffx = x1 - x2
-  cdef double diffy = y1 - y2
+cdef inline double sqdist(double a[], double b[]) except? -2:
+  """Calculates Euclidean distance between a and b"""
+  cdef double diffx = a[0] - b[0]
+  cdef double diffy = a[1] - b[1]
   return (diffx * diffx) + (diffy * diffy)
 
 # Adds the point to the list of best nodes if it is closer than the current best
 # list
 # Returns the index of the next element in the list (or count) to facilitate fast
 # computation of the largest element
-cdef int add_best(int count, double node_x, double node_y, int node_num, \
-                  double point_x, double point_y, best) except? -2:
+cdef int add_best(int count, double nodepoint[], int node_num, double search[], best) except? -2:
   # due to the constraints of the problem, we need to check each node
   # before assigning it as the final best choice to ensure it is not
   # equal to the searched-for point
 
-  cdef double sd = sqdist(node_x, node_y, point_x, point_y)
+  cdef double sd = sqdist(nodepoint, search)
 
   cdef BestPair candidate = BestPair(node_num, sd)
   # search through linearly to maintain sorted order
