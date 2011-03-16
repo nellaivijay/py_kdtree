@@ -41,14 +41,13 @@ cdef class BestPair:
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
   cdef int number
-  cdef double xcoord
-  cdef double ycoord
+  cdef double coords[2]
   cdef KDTreeNode left
   cdef KDTreeNode right
 
   def __cinit__(self, int number, double xcoord, double ycoord):
-    self.xcoord = xcoord
-    self.ycoord = ycoord
+    self.coords[0] = xcoord
+    self.coords[1] = ycoord
     self.number = number
     self.left = None
     self.right = None
@@ -56,14 +55,6 @@ cdef class KDTreeNode:
   property number:
     def __get__(self):
       return self.number
-
-  property xcoord:
-    def __get__(self):
-      return self.xcoord
-
-  property ycoord:
-    def __get__(self):
-      return self.ycoord
 
   property left:
     def __get__(self):
@@ -76,7 +67,7 @@ cdef class KDTreeNode:
   cpdef run_nn_search(self, int search_num, search):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
-    best = [BestPair(-1, -1)] * 3
+    best = [None] * 3
     cdef double search_arr[2]
     search_arr[0] = search[0]
     search_arr[1] = search[1]
@@ -94,6 +85,14 @@ def axis1PointKey(point):
   """Sort for axis one (i.e. Y axis)"""
   return point[1][1]
 
+cpdef print_preorder(KDTreeNode node):
+  """Print the nodes of the tree in pre-order fashion."""
+  if node is None:
+    return
+  print "%d [%f,%f]" % (node.number, node.coords[0], node.coords[1])
+  print_preorder(node.left)
+  print_preorder(node.right)
+
 cpdef KDTreeNode kdtree(pointList, int axis):
   """Constructs a KD-tree and returns the root node.  pointList is a tuple of (ID, [x,y])"""
   if not pointList:
@@ -106,19 +105,19 @@ cpdef KDTreeNode kdtree(pointList, int axis):
 
   # Sort point list and choose median as pivot element
   # Note that pointList[0] = number, pointList[1] = lat, long coordinates
-  # sort is faster using strings, so we use point[1]
   #pointList.sort(key=lambda point: point[1][axis])
   if axis == 0:
     pointList.sort(key=axis0PointKey)
   else:
     pointList.sort(key=axis1PointKey)
+
   cdef int median = len(pointList) / 2
 
   cdef int next_axis = 1
   if 1 == axis:
     next_axis = 0
   cdef KDTreeNode node
-  node = KDTreeNode(pointList[median][0], pointList[median][2][0], pointList[median][2][1])
+  node = KDTreeNode(pointList[median][0], pointList[median][1][0], pointList[median][1][1])
   cdef KDTreeNode left = kdtree(pointList[0:median], next_axis)
   cdef KDTreeNode right = kdtree(pointList[median + 1:], next_axis)
   node.left = left
@@ -135,12 +134,12 @@ cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int c
 
   cdef int node_num = node.number
   cdef double nodepoint[2]
-  nodepoint[0] = node.xcoord
-  nodepoint[1] = node.ycoord
+  nodepoint[0] = node.coords[0]
+  nodepoint[1] = node.coords[1]
 
   if node.left is None and node.right is None:
     if node_num != search_num:
-      count = add_best(count, nodepoint, node_num, search, best)
+      count = add_best(count, node_num, nodepoint, search, best)
     return count
 
   # Normally we'd elect axis based on depth so that axis cycles through 
@@ -167,7 +166,7 @@ cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int c
 
   # If the current node is closer overall than the current best
   if node_num != search_num:
-    count = add_best(count, nodepoint, node_num, search, best)
+    count = add_best(count, node_num, nodepoint, search, best)
 
   cdef double largest
   cdef BestPair bp
@@ -200,11 +199,13 @@ cdef inline double sqdist(double a[], double b[]) except? -2:
   cdef double diffy = a[1] - b[1]
   return (diffx * diffx) + (diffy * diffy)
 
-# Adds the point to the list of best nodes if it is closer than the current best
-# list
-# Returns the index of the next element in the list (or count) to facilitate fast
-# computation of the largest element
-cdef int add_best(int count, double nodepoint[], int node_num, double search[], best) except? -2:
+cdef int add_best(int count, int node_num, double nodepoint[], double search[], best) except? -2:
+  """
+  Add the node_num to the list of best nodes if it is closer to the searched-for 
+  node than any current nodes.
+
+  Returns: The count of elements in the BestPair list
+  """
   # due to the constraints of the problem, we need to check each node
   # before assigning it as the final best choice to ensure it is not
   # equal to the searched-for point
@@ -236,6 +237,6 @@ cdef int add_best(int count, double nodepoint[], int node_num, double search[], 
       return last_idx + 1
   if count < LIMIT:
     # didn't find an insert spot, so insert at the end
-    best[last_idx] = candidate
-    return last_idx + 1
+    best[count] = candidate
+    return count + 1
   return count

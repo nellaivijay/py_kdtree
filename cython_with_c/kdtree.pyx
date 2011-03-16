@@ -70,7 +70,7 @@ cdef kdtree_node * fill_tree(pointList, int axis):
 
   cdef int number = pointList[median][0]
   node.number = number
-  plMedian = pointList[median][2]
+  plMedian = pointList[median][1]
   cdef int point_sz = len(plMedian)
   cdef double * coords = <double *>malloc(point_sz * sizeof(double))
   if not coords:
