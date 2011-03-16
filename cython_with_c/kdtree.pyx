@@ -36,7 +36,7 @@ def axis0PointKey(point):
 
 def axis1PointKey(point):
   """Sort for axis one (i.e. Y axis)"""
-    return point[1][1]
+  return point[1][1]
 
 
 cdef kdtree_node * fill_tree(pointList, int axis):
@@ -65,13 +65,16 @@ cdef kdtree_node * fill_tree(pointList, int axis):
     next_axis = 0
 
   cdef kdtree_node *node = <kdtree_node *>malloc(sizeof(kdtree_node))
+  if not node:
+    raise MemoryError()
 
   cdef int number = pointList[median][0]
   node.number = number
-  cdef double *coords
   plMedian = pointList[median][2]
   cdef int point_sz = len(plMedian)
-  coords = <double *>malloc(point_sz * sizeof(double))
+  cdef double * coords = <double *>malloc(point_sz * sizeof(double))
+  if not coords:
+    raise MemoryError()
 
   cdef int i
   for i in xrange(point_sz):
@@ -84,10 +87,6 @@ cdef kdtree_node * fill_tree(pointList, int axis):
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
   cdef kdtree_node *root
-  def __cinit__(self):
-    """Malloc the root of the tree"""
-    pass
-    #<kdtree_node *>malloc(sizeof(kdtree_node))
 
   cdef dealloc_tree(self, kdtree_node * node):
     """free the memory associated with root and its children"""
