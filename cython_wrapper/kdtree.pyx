@@ -19,8 +19,6 @@
 # and
 # http://en.wikipedia.org/wiki/Kd-tree
 
-import sys,os,copy
-
 cdef int LIMIT
 LIMIT = 3
 
