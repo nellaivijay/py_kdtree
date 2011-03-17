@@ -105,19 +105,23 @@ cdef class KDTreeNode:
     if NULL == self.root:
       self.root = fill_tree(pointList, 0)
 
-  cpdef run_nn_search(self, int search_num, search):
+  cpdef run_nn_search(self, int search_num, search, int num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
     cdef double search_point[2]
     search_point[0] = search[0]
     search_point[1] = search[1]
 
-    cdef int best_sz = 3
-    cdef int best[3]
+    cdef int *best = <int *>malloc(num_neighbors * sizeof(int))
+    if not best:
+      raise MemoryError()
     cdef int i
-    c_run_nn_search(self.root, best, best_sz, search_num, search_point)
-    output = []
+    try:
+      c_run_nn_search(self.root, best, num_neighbors, search_num, search_point)
+      output = []
 
-    for i in xrange(best_sz):
-      output.append(best[i])
-    return output
+      for i in xrange(num_neighbors):
+        output.append(best[i])
+      return output
+    finally:
+      free(best)
