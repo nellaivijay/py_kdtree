@@ -117,8 +117,10 @@ cpdef KDTreeNode kdtree(pointList, int axis):
   cdef int next_axis = 1
   if 1 == axis:
     next_axis = 0
+
+  pl_median = pointList[median]
   cdef KDTreeNode node
-  node = KDTreeNode(pointList[median][0], pointList[median][1][0], pointList[median][1][1])
+  node = KDTreeNode(pl_median[0], pl_median[1][0], pl_median[1][1])
   cdef KDTreeNode left = kdtree(pointList[0:median], next_axis)
   cdef KDTreeNode right = kdtree(pointList[median + 1:], next_axis)
   node.left = left
