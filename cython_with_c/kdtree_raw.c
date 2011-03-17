@@ -14,8 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "kdtree_raw.h"
+
+#ifndef OOM
+#define OOM 8
+#endif
 
 typedef struct best_pair {
 	int node_num;
@@ -53,10 +58,10 @@ static double sqdist(double a[], double b[]) {
 	return (diffx * diffx) + (diffy * diffy);
 }
 
-kdtree_node * make_tree(
-		point_data points[], 
-		int num_points, 
-		int axis) {
+kdtree_node * fill_tree(point_data points[], int num_points, int axis) {
+	if (!points) {
+		return NULL;
+	}
 
   /*node = kdtree_node(pointList[median][0], pointList[median][2][0], pointList[median][2][1])
   cdef kdtree_node left = kdtree(pointList[0:median], next_axis)
@@ -66,24 +71,46 @@ kdtree_node * make_tree(
   int next_axis = pick_axis(axis);
 	kdtree_node* node = malloc(sizeof(kdtree_node));
 	if (NULL == node) {
-		/* TODO error code */
-		return NULL;
+		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+		exit(OOM);
 	}
 
-	node->num = points[median].num;
-	node->coords[0] = points[median].coords[0];
-	node->coords[1] = points[median].coords[1];
+	point_data p_median = points[median];
+	node->num = p_median.num;
+	int dims = 2;
+	node->coords = malloc(dims * sizeof(double));
+	if (NULL == node->coords) {
+		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+		exit(OOM);
+	}
+	/* copy points over */
+	memcpy(node->coords, &(points[0]), dims);
 
+	/* Now divide and recurse left/right */
 	{
-		point_data left_arr[median];
-		memcpy (left_arr, points, median * sizeof(point_data));
-		node->left = make_tree(left_arr, next_axis, median);
+		point_data *left_arr;
+		int cp_sz = median * sizeof(point_data);
+		left_arr = malloc(cp_sz);
+		if (NULL == left_arr) {
+			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+			exit(OOM);
+		}
+		memcpy(left_arr, &(points[0]), cp_sz);
+		node->left = fill_tree(left_arr, median, next_axis);
+		free(left_arr);
 	}
 
 	{
-		point_data right_arr[right_sz];
-		memcpy (right_arr, &points[median + 1], right_sz * sizeof(point_data));
-		node->right = make_tree(right_arr, next_axis, right_sz);
+		point_data *right_arr;
+		int cp_sz = right_sz * sizeof(point_data);
+		right_arr = malloc(cp_sz);
+		if (NULL == right_arr) {
+			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+			exit(OOM);
+		}
+		memcpy(&right_arr, &(points[median + 1]), cp_sz);
+		node->right = fill_tree(right_arr, right_sz, next_axis);
+		free(right_arr);
 	}
 	return node;
 }
@@ -98,11 +125,11 @@ static int add_best(
 		int node_num, 
 		double search[], 
 		best_pair best[],
-		int best_sz) {
+		int num_neighbors) {
 
 	double sd = sqdist(nodepoint, search);
 	int last_idx;
-	if (count < best_sz) {
+	if (count < num_neighbors) {
 		last_idx = count;
 	} else {
 		last_idx = count - 1;
@@ -128,7 +155,7 @@ static int add_best(
 		}
 	}
 
-	if (count < best_sz) {
+	if (count < num_neighbors) {
 		/* didn't find an insert spot, so insert at the end */
 		best[last_idx] = candidate;
 		return last_idx + 1;
@@ -142,7 +169,7 @@ static int nn_search(
 		int search_num,
 		double search[],
 		best_pair best[], 
-		int best_sz,
+		int num_neighbors,
 		int count, 
 		int axis) {
   if (NULL == node) {
@@ -158,7 +185,7 @@ static int nn_search(
      equal to the searched-for point, hence node_num != search_num */
 	if (NULL == node->left && NULL == node->right) {
     if (node_num != search_num) {
-      cnt = add_best(cnt, nodepoint, node_num, search, best, best_sz);
+      cnt = add_best(cnt, nodepoint, node_num, search, best, num_neighbors);
 		}
     return cnt;
 	}
@@ -185,12 +212,12 @@ static int nn_search(
   int next_axis = pick_axis(axis);
 
 	if (NULL != near) {
-	  cnt = nn_search(near, search_num, search, best, best_sz, cnt, next_axis);
+	  cnt = nn_search(near, search_num, search, best, num_neighbors, cnt, next_axis);
 	}
 
   /* If the current node is closer overall than the current best */
   if (node_num != search_num) {
-    cnt = add_best(cnt, nodepoint, node_num, search, best, best_sz);
+    cnt = add_best(cnt, nodepoint, node_num, search, best, num_neighbors);
 	}
 
   /* maybe search the away branch */
@@ -206,7 +233,7 @@ static int nn_search(
 			}
 		}
 		if (1 == search_other) {
-			cnt = nn_search(far, search_num, search, best, best_sz, cnt, next_axis);
+			cnt = nn_search(far, search_num, search, best, num_neighbors, cnt, next_axis);
 		}
 	}
   return cnt;
@@ -216,12 +243,16 @@ static int nn_search(
  * call it like run_nn_search(kdtree_node, search_num, (search_x, search_y))
  */
 extern void
-run_nn_search(kdtree_node *root, int best_nums[], int best_sz, int search_num, double search[]) {
-	best_pair best[best_sz];
-	nn_search(root, search_num, search, best, best_sz, 0, 0);
+run_nn_search(kdtree_node *root, 
+		int best_nums[], 
+		int num_neighbors, 
+		int search_num, 
+		double search[]) {
+	best_pair best[num_neighbors];
+	nn_search(root, search_num, search, best, num_neighbors, 0, 0);
 
 	int i;
-	for (i = 0; i < best_sz; i++) {
+	for (i = 0; i < num_neighbors; i++) {
 		best_nums[i] = best[i].node_num;
 	}
 }

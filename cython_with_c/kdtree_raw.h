@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LIMIT 3
-
 /* Structs */
 typedef struct kdtree_node kdtree_node;
 
@@ -36,6 +34,6 @@ typedef struct point_data {
 /* prototypes */
 extern void run_nn_search(kdtree_node *root, 
 		int best_nums[], 
-		int best_sz, 
+		int num_neighbors, 
 		int search_num, 
 		double search[]);
