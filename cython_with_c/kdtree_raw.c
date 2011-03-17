@@ -70,7 +70,7 @@ kdtree_node * make_tree(
 		return NULL;
 	}
 
-	node->number = points[median].number;
+	node->num = points[median].num;
 	node->coords[0] = points[median].coords[0];
 	node->coords[1] = points[median].coords[1];
 
@@ -151,7 +151,7 @@ static int nn_search(
 
 	int cnt = count;
   double *nodepoint = node->coords;
-	int node_num = node->number;
+	int node_num = node->num;
 
   /* due to the constraints of the problem, we need to check each node
      before assigning it as the final best choice to ensure it is not

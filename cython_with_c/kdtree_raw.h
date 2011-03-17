@@ -23,13 +23,13 @@ typedef struct kdtree_node kdtree_node;
 
 struct kdtree_node{
 	double * coords;
-  int number;
+  int num;
 	kdtree_node *left;
   kdtree_node *right;
 };
 
 typedef struct point_data {
-	int number;
+	int num;
 	double *coords;
 } point_data;
 

@@ -15,13 +15,13 @@
 
 cdef extern from "kdtree_raw.h":
   struct kdtree_node:
-    int number
+    int num
     double *coords
     kdtree_node * left
     kdtree_node * right
 
   struct point_data:
-    int number
+    int num
     double * coords
 
   extern void c_run_nn_search "run_nn_search" (kdtree_node *, int [], int, int, double search[])
@@ -37,7 +37,6 @@ def axis0PointKey(point):
 def axis1PointKey(point):
   """Sort for axis one (i.e. Y axis)"""
   return point[1][1]
-
 
 cdef kdtree_node * fill_tree(pointList, int axis):
   """ Constructs a KD-tree and returns the root node.  pointList is a tuple of (ID, [x,y])"""
@@ -68,17 +67,18 @@ cdef kdtree_node * fill_tree(pointList, int axis):
   if not node:
     raise MemoryError()
 
-  cdef int number = pointList[median][0]
-  node.number = number
-  plMedian = pointList[median][1]
-  cdef int point_sz = len(plMedian)
+  pl_median = pointList[median]
+  cdef int number = pl_median[0]
+  node.num = number
+  in_points = pl_median[1]
+  cdef int point_sz = len(in_points)
   cdef double * coords = <double *>malloc(point_sz * sizeof(double))
   if not coords:
     raise MemoryError()
 
   cdef int i
   for i in xrange(point_sz):
-    coords[i] = plMedian[i]
+    coords[i] = in_points[i]
   node.coords = coords
   node.left = fill_tree(pointList[0:median], next_axis)
   node.right = fill_tree(pointList[median + 1:], next_axis)
