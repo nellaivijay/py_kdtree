@@ -19,28 +19,17 @@
 # and
 # http://en.wikipedia.org/wiki/Kd-tree
 
-cdef int LIMIT
-LIMIT = 3
+cdef extern from "stdlib.h":
+  void free(void* ptr)
+  void* malloc(size_t size)
 
-cdef class BestPair:
-  cdef int node_num
-  cdef double dist
-
-  def __cinit__(self, int node_num, double dist):
-    self.node_num = node_num
-    self.dist = dist
-
-  property node_num:
-    def __get__(self):
-      return self.node_num
-
-  property dist:
-    def __get__(self):
-      return self.dist
+cdef struct best_pair:
+  int node_num
+  double dist
 
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
-  cdef int number
+  cdef int num
   cdef double coords[2]
   cdef KDTreeNode left
   cdef KDTreeNode right
@@ -48,7 +37,7 @@ cdef class KDTreeNode:
   def __cinit__(self, int number, double xcoord, double ycoord):
     self.coords[0] = xcoord
     self.coords[1] = ycoord
-    self.number = number
+    self.num = number
     self.left = None
     self.right = None
 
@@ -64,18 +53,30 @@ cdef class KDTreeNode:
     def __get__(self):
       return self.right
 
-  cpdef run_nn_search(self, int search_num, search):
+  cpdef run_nn_search(self, int search_num, search, int num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
-    best = [None] * 3
+
     cdef double search_arr[2]
     search_arr[0] = search[0]
     search_arr[1] = search[1]
-    nn_search(self, search_num, search_arr, best, 0, 0)
-    output = []
-    for x in best:
-      output.append(x.node_num)
-    return output
+
+    # cdef best_pair[num_neighbors] won't work; Cython complains about wanting 
+    # constants for allocation, so we need to dynamically allocate it
+    cdef best_pair *best = <best_pair *>malloc(num_neighbors * sizeof(best_pair))
+    if not best:
+      raise MemoryError()
+
+    cdef int i
+    try:
+      nn_search(self, search_num, search_arr, best, 0, 0, num_neighbors)
+      output = []
+      for i in xrange(num_neighbors):
+        output.append(best[i].node_num)
+
+      return output
+    finally:
+      free(best)
 
 def axis0PointKey(point):
   """Sort for axis zero (i.e. X axis)"""
@@ -89,7 +90,7 @@ cpdef print_preorder(KDTreeNode node):
   """Print the nodes of the tree in pre-order fashion."""
   if node is None:
     return
-  print "%d [%f,%f]" % (node.number, node.coords[0], node.coords[1])
+  print "%d [%f,%f]" % (node.num, node.coords[0], node.coords[1])
   print_preorder(node.left)
   print_preorder(node.right)
 
@@ -126,20 +127,21 @@ cpdef KDTreeNode kdtree(pointList, int axis):
 
 
 # Searches for nearest neighbor of point using node as the root.
-cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int count, int axis) except? -2:
+cdef int nn_search(KDTreeNode node, int search_num, double search[], \
+                   best_pair best[], int count, int axis, int num_neighbors) except? -2:
   """Runs a nearest neighbor search on the given point, which is defined
   by the point number 'search_num' and search coordinates 'search'."""
   if node is None:
     return count
 
-  cdef int node_num = node.number
+  cdef int node_num = node.num
   cdef double nodepoint[2]
   nodepoint[0] = node.coords[0]
   nodepoint[1] = node.coords[1]
 
   if node.left is None and node.right is None:
     if node_num != search_num:
-      count = add_best(count, node_num, nodepoint, search, best)
+      count = add_best(count, node, search, best, num_neighbors)
     return count
 
   # Normally we'd elect axis based on depth so that axis cycles through 
@@ -162,14 +164,14 @@ cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int c
   if 1 == axis:
     next_axis = 0
   if near is not None:
-    count = nn_search(near, search_num, search, best, count, next_axis)
+    count = nn_search(near, search_num, search, best, count, next_axis, num_neighbors)
 
   # If the current node is closer overall than the current best
   if node_num != search_num:
-    count = add_best(count, node_num, nodepoint, search, best)
+    count = add_best(count, node, search, best, num_neighbors)
 
   cdef double largest
-  cdef BestPair bp
+  cdef best_pair bp
   if count > 0:
     bp = best[count - 1]
     largest = bp.dist
@@ -190,7 +192,7 @@ cdef int nn_search(KDTreeNode node, int search_num, double search[], best, int c
       if sq_diff < largest:
         search_other = 1
     if 1 == search_other:
-      count = nn_search(far, search_num, search, best, count, next_axis)
+      count = nn_search(far, search_num, search, best, count, next_axis, num_neighbors)
   return count
 
 cdef inline double sqdist(double a[], double b[]) except? -2:
@@ -199,43 +201,40 @@ cdef inline double sqdist(double a[], double b[]) except? -2:
   cdef double diffy = a[1] - b[1]
   return (diffx * diffx) + (diffy * diffy)
 
-cdef int add_best(int count, int node_num, double nodepoint[], double search[], best) except? -2:
+cdef int add_best(int count, KDTreeNode node, double search[], \
+                  best_pair best[], int num_neighbors) except? -2:
   """
   Add the node_num to the list of best nodes if it is closer to the searched-for 
   node than any current nodes.
 
-  Returns: The count of elements in the BestPair list
+  Returns: The count of elements in the best_pair list
   """
   # due to the constraints of the problem, we need to check each node
   # before assigning it as the final best choice to ensure it is not
   # equal to the searched-for point
 
-  cdef double sd = sqdist(nodepoint, search)
+  cdef double sd = sqdist(node.coords, search)
 
-  cdef BestPair candidate = BestPair(node_num, sd)
+  cdef best_pair candidate = best_pair(node.num, sd)
   # search through linearly to maintain sorted order
   cdef int last_idx
-  if count < LIMIT:
+  if count < num_neighbors:
     last_idx = count
   else:
     last_idx = count - 1
 
   cdef int idx
   cdef int x
-  cdef BestPair pair
+  cdef best_pair pair
   for idx in xrange(count):
     pair = best[idx]
     if pair.dist > sd:
       # push elements down
-      # Use a while loop else Cython won't turn this into C
-      #for x in xrange(last_idx, idx, -1):
-      x = last_idx
-      while x > idx:
+      for x in xrange(last_idx, idx, -1):
         best[x] = best[x - 1]
-        x = x - 1
       best[idx] = candidate
       return last_idx + 1
-  if count < LIMIT:
+  if count < num_neighbors:
     # didn't find an insert spot, so insert at the end
     best[count] = candidate
     return count + 1
