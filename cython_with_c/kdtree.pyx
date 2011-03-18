@@ -22,11 +22,12 @@ cdef extern from "kdtree_raw.h":
 
   struct point_data:
     int num
+    int sz
     int curr_axis
     double * coords
 
-  extern void c_run_nn_search "run_nn_search" (kdtree_node *, int [], int, int, double[])
-  extern kdtree_node * c_fill_tree "fill_tree" (point_data **, int, int, int)
+  extern void c_run_nn_search "run_nn_search" (kdtree_node *, int, point_data, int[])
+  extern kdtree_node * c_fill_tree "fill_tree" (point_data **, int, int)
   extern void free_tree(kdtree_node *)
 
 cdef extern from "stdlib.h":
@@ -39,9 +40,10 @@ cdef class KDTreeNode:
 
   def __dealloc__(self):
     """free the memory associated with root and its children"""
-    free_tree(self.root)
-    # TODO let the C code handle this once we've fixed the NULL assignment problem
-    self.root = NULL
+    if NULL != self.root:
+      free_tree(self.root)
+      # TODO let the C code handle this once we've fixed the NULL assignment problem
+      self.root = NULL
 
   def __init__(self, pointList):
     cdef point_data **points
@@ -76,7 +78,7 @@ cdef class KDTreeNode:
           for d in xrange(dims):
             points[i].coords[d] = in_points[d]
 
-        self.root = c_fill_tree(points, num_points, dims, 0)
+        self.root = c_fill_tree(points, num_points, dims)
       finally:
         for i in xrange(num_points):
           if NULL != points[i]:
@@ -88,20 +90,31 @@ cdef class KDTreeNode:
   cpdef run_nn_search(self, int search_num, search, int num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
-    cdef double search_point[2]
-    search_point[0] = search[0]
-    search_point[1] = search[1]
+    cdef int search_len = len(search)
+    cdef point_data pd
+    pd.sz = search_len
+    pd.num = search_num
+
+    pd.coords = <double *>malloc(search_len * sizeof(double))
+    if not pd.coords:
+      raise MemoryError()
+
+    cdef int i
+    for i in xrange(search_len):
+      pd.coords[i] = search[i]
 
     cdef int *best = <int *>malloc(num_neighbors * sizeof(int))
     if not best:
       raise MemoryError()
-    cdef int i
     try:
-      c_run_nn_search(self.root, best, num_neighbors, search_num, search_point)
+      c_run_nn_search(self.root, num_neighbors, pd, best)
       output = []
 
       for i in xrange(num_neighbors):
         output.append(best[i])
       return output
     finally:
-      free(best)
+      if NULL != best:
+        free(best)
+      if NULL != pd.coords:
+        free(pd.coords)

@@ -39,17 +39,10 @@ static double largest_dist(best_pair best[], int count) {
 }
 
 /*
- * Choose the next axis to use based on the current axis.
+ * Choose the next axis to use based on the current depth and the number of dimensions.
  */
-static int pick_axis(int axis) {
-  /* search the near branch */
-  int next_axis;
-	if (1 == axis) {
-		next_axis = 0;
-	} else {
-		next_axis = 1;
-	}
-	return next_axis;
+static int pick_axis(int depth, int dims) {
+	return depth % dims;
 }
 
 static double sqdist(double a[], double b[]) {
@@ -90,7 +83,7 @@ static void print_points(point_data **points, int num_points) {
  * Builds up a tree using the given point_data.  This copies the data in points[] so the 
  * caller is free to dispose of it after the call.
  */
-extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, int axis) {
+static kdtree_node * fill_tree_r(point_data **points, int num_points, int dims, int depth) {
 	if (NULL == points || 0 == num_points) {
 		return NULL;
 	}
@@ -103,6 +96,7 @@ extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, in
 	node->left = NULL;
 	node->right = NULL;
 
+	int axis = pick_axis(depth, dims);
 	/* Sort the points by axis; we need to mod the current axis before sorting to get
 	 * the comparison to work correctly */
 	size_t x;
@@ -115,7 +109,6 @@ extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, in
 	/*fprintf(stderr, "========== Num points after sort: %d\n", num_points);
 	print_points(points, num_points);*/
 
-	int next_axis = pick_axis(axis);
 	int median = num_points / 2;
 	int left_sz = median;
 	/*fprintf(stderr, "Median %d\n", median);*/
@@ -141,6 +134,7 @@ extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, in
 		fprintf(stderr, "======== right copy: [%d, %d)\n", median + 1, median + 1 + right_sz);
 	}*/
 	/* Now divide and recurse left/right */
+	int next_depth = depth + 1;
 	if (left_sz > 0) {
 		/* Left side goes from [0, median), i.e. does not include the median */
 		size_t cp_sz = left_sz * sizeof(point_data *);
@@ -153,7 +147,7 @@ extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, in
 		memcpy(left_arr, points, cp_sz);
 		/*print_points(left_arr, left_sz);*/
 		/*fprintf(stderr, "Recursing for left\n");*/
-		node->left = fill_tree(left_arr, median, dims, next_axis);
+		node->left = fill_tree_r(left_arr, median, dims, next_depth);
 		free(left_arr);
 		/*fprintf(stderr, "finished left copy\n");*/
 	}
@@ -169,13 +163,24 @@ extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, in
 		}
 		/*fprintf(stderr, "Recursing for right\n");*/
 		memcpy(right_arr, &(points[median + 1]), cp_sz);
-		node->right = fill_tree(right_arr, right_sz, dims, next_axis);
+		node->right = fill_tree_r(right_arr, right_sz, dims, next_depth);
 		free(right_arr);
 		/*fprintf(stderr, "finished right copy\n");*/
 	}
 	return node;
 }
 
+/*
+ * Builds up a tree using the given point_data.  This copies the data in points[] so the 
+ * caller is free to dispose of it after the call.
+ */
+extern kdtree_node * fill_tree(point_data **points, int num_points, int dims) {
+	return fill_tree_r(points, num_points, dims, 0);
+}
+
+/* 
+ * Recursively free()s the elements of the tree.
+ */
 extern void free_tree(kdtree_node * node) {
 	if (NULL == node) {
 		return;
@@ -199,29 +204,28 @@ extern void free_tree(kdtree_node * node) {
 /* Adds the search to the list of best nodes if it is closer than the current best
 	 list. */
 static int add_best(
-		int count, 
-		double nodepoint[], 
-		int node_num, 
-		double search[], 
 		best_pair best[],
+		int best_count, 
+		const kdtree_node *neighbor,
+		point_data search, 
 		int num_neighbors) {
 
-	double sd = sqdist(nodepoint, search);
+	double sd = sqdist(neighbor->coords, search.coords);
 	int last_idx;
-	if (count < num_neighbors) {
-		last_idx = count;
+	if (best_count < num_neighbors) {
+		last_idx = best_count;
 	} else {
-		last_idx = count - 1;
+		last_idx = best_count - 1;
 	}
 
 	int idx;
 	best_pair candidate;
-	candidate.node_num = node_num;
+	candidate.node_num = neighbor->num;
 	candidate.dist = sd;
 
 	best_pair pair;
 	/* search through linearly to maintain sorted order */
-	for (idx = 0; idx < count; idx++) {
+	for (idx = 0; idx < best_count; idx++) {
 		pair = best[idx];
 		if (pair.dist > sd) {
 			/* push elements down */
@@ -234,52 +238,50 @@ static int add_best(
 		}
 	}
 
-	if (count < num_neighbors) {
+	if (best_count < num_neighbors) {
 		/* didn't find an insert spot, so insert at the end */
 		best[last_idx] = candidate;
 		return last_idx + 1;
 	}
-  return count;
+  return best_count;
 }
 
 /* Searches for nearest neighbor of search using node as the root. */
 static int nn_search(
 		const kdtree_node *node, 
-		int search_num,
-		double search[],
+		point_data search,
 		best_pair best[], 
+		int best_count, 
 		int num_neighbors,
-		int count, 
-		int axis) {
+		int depth) {
   if (NULL == node) {
-    return count;
+    return best_count;
 	}
+	
+	int search_num = search.num;
+	int dims = search.sz;
+	int axis = pick_axis(depth, dims);
 
-	int cnt = count;
-  double *nodepoint = node->coords;
 	int node_num = node->num;
+	double neighbor_coord = node->coords[axis];
+	double search_coord = search.coords[axis];
 
-  /* due to the constraints of the problem, we need to check each node
-     before assigning it as the final best choice to ensure it is not
-     equal to the searched-for point, hence node_num != search_num */
+  /* we need to check each node before assigning it as the final best choice to 
+	   ensure it is not equal to the searched-for point, hence 
+	   node_num != search_num */
 	if (NULL == node->left && NULL == node->right) {
     if (node_num != search_num) {
-      cnt = add_best(cnt, nodepoint, node_num, search, best, num_neighbors);
+      best_count = add_best(best, best_count, node, search, num_neighbors);
 		}
-    return cnt;
+    return best_count;
 	}
-
-  /* Normally we'd select axis based on depth so that axis cycles through 
-     all valid values.  Here we know we have 2-dimensional values, so don't 
-     waste time calculating, but just alternate
-     axis = depth % len(search) */
 
   /* compare query point and current node along the axis to see which tree is
      far and which is near */
 
 	kdtree_node *near;
 	kdtree_node *far;
-  if (search[axis] < nodepoint[axis]) {
+  if (search_coord < neighbor_coord) {
     near = (kdtree_node *)node->left;
     far = (kdtree_node *)node->right;
 	} else {
@@ -288,47 +290,45 @@ static int nn_search(
 	}
 
   /* search the near branch */
-  int next_axis = pick_axis(axis);
+  int next_depth = depth + 1;
 
 	if (NULL != near) {
-	  cnt = nn_search(near, search_num, search, best, num_neighbors, cnt, next_axis);
+	  best_count = nn_search(near, search, best, best_count, num_neighbors, next_depth);
 	}
 
   /* If the current node is closer overall than the current best */
   if (node_num != search_num) {
-    cnt = add_best(cnt, nodepoint, node_num, search, best, num_neighbors);
+    best_count = add_best(best, best_count, node, search, num_neighbors);
 	}
 
   /* maybe search the away branch */
 	if (NULL != far) {
-		double largest = largest_dist(best, cnt);
+		double largest = largest_dist(best, best_count);
 		int search_other = 0;
 		if (largest < 0) {
 			search_other = 1;
 		} else {
-			double diff = nodepoint[axis] - search[axis];
+			double diff = neighbor_coord - search_coord;
 			if ((diff * diff) < largest) {
 				search_other = 1;
 			}
 		}
 		if (1 == search_other) {
-			cnt = nn_search(far, search_num, search, best, num_neighbors, cnt, next_axis);
+			best_count = nn_search(far, search, best, best_count, num_neighbors, next_depth);
 		}
 	}
-  return cnt;
+  return best_count;
 }
 
 /* Initializes the nearest neighbor search point and starts the search.
- * call it like run_nn_search(kdtree_node, search_num, (search_x, search_y))
  */
 extern void
 run_nn_search(kdtree_node *root, 
-		int best_nums[], 
 		int num_neighbors, 
-		int search_num, 
-		double search[]) {
+		point_data search,
+		int best_nums[]) {
 	best_pair best[num_neighbors];
-	nn_search(root, search_num, search, best, num_neighbors, 0, 0);
+	nn_search(root, search, best, 0, num_neighbors, 0);
 
 	int i;
 	for (i = 0; i < num_neighbors; i++) {
