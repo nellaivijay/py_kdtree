@@ -1,11 +1,23 @@
 This is a KD tree implementation, written in C, meant as an extension for Python.
 
-Currently it is hardcoded for two dimensions; the interested user can either puzzle
-out how to extend it or wait until I am motivated to add more dimensions.
+It is mostly meant as an example for:
+1. How to hand-write a Python wrapper for C (top level directory).
+2. How to wrap C code in Python using Cython (cython_with_c directory).
+3. How to generate C code with just Cython (cython_wrapper directory).
+
+The KD-tree implementation itself is sort of a side issue; it works, but it is missing
+features like adding nodes.  The reason for bothering to write this in Cython/C is that
+a pure Python implementation is slow.  On a sample run (with the file in Linux's cache),
+it takes 12 minutes to search for 3 nearest neighbors on a
+100,000 node tree using pure Python.  The implementations for (2) and (3) take 1.8 and 
+3.3 seconds, which is a significant speed increase.
+
+Currently it is hardcoded for two dimensions.  I am working on adding multiple dimensions
+to (2) and (3), as well as unifying the API and making it easier to use.
 I took my inspiration from http://code.google.com/p/python-kdtree/ and
 http://en.wikipedia.org/wiki/Kd-tree, so those might be a good start.
 
 This is my first C extension to Python, so there may be something I've done incredibly
-wrong-please email me if you discover a bug.  I've tested this against a 100K node tree,
-so I don't believe there are any obvious bugs such as neglecting to INCREF or DECREF,
-but I can't be sure.
+wrong-please email me if you discover a bug.  I've tested this against several trees,
+from 10 nodes to 100,000 nodes, so I don't believe there are any obvious bugs such as 
+neglecting to INCREF or DECREF, but I can't be sure.
