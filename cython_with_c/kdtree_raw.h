@@ -20,7 +20,7 @@
 typedef struct kdtree_node kdtree_node;
 
 struct kdtree_node{
-	double * coords;
+	double *coords;
   int num;
 	kdtree_node *left;
   kdtree_node *right;
@@ -28,6 +28,7 @@ struct kdtree_node{
 
 typedef struct point_data {
 	int num;
+	int curr_axis;
 	double *coords;
 } point_data;
 
@@ -37,3 +38,7 @@ extern void run_nn_search(kdtree_node *root,
 		int num_neighbors, 
 		int search_num, 
 		double search[]);
+
+extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, int axis);
+
+extern void free_tree(kdtree_node * node);

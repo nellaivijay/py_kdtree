@@ -58,67 +58,146 @@ static double sqdist(double a[], double b[]) {
 	return (diffx * diffx) + (diffy * diffy);
 }
 
-kdtree_node * fill_tree(point_data points[], int num_points, int axis) {
-	if (!points) {
+/*
+ * Compares two point_data items based on the coordinate and their current axis.
+ */
+static int comp_axis(const void *a, const void *b) {
+	point_data * const *pa = a;
+	point_data * const *pb = b;
+
+	int axis = (*pa)->curr_axis;
+	double a_coord = (*pa)->coords[axis];
+	double b_coord = (*pb)->coords[axis];
+	/*fprintf(stderr, "a coord %f\n", a_coord);
+	fprintf(stderr, "b coord %f\n", b_coord);*/
+	if (a_coord < b_coord) {
+		return -1;
+	}
+	if (a_coord > b_coord) {
+		return 1;
+	}
+	return 0;
+}
+
+static void print_points(point_data **points, int num_points) {
+	size_t y;
+	for (y = 0; y < num_points; y++) {
+		fprintf(stderr, "cpoint %f, %f\n", points[y]->coords[0], points[y]->coords[1]);
+	}
+}
+
+/*
+ * Builds up a tree using the given point_data.  This copies the data in points[] so the 
+ * caller is free to dispose of it after the call.
+ */
+extern kdtree_node * fill_tree(point_data **points, int num_points, int dims, int axis) {
+	if (NULL == points || 0 == num_points) {
 		return NULL;
 	}
 
-  /*node = kdtree_node(pointList[median][0], pointList[median][2][0], pointList[median][2][1])
-  cdef kdtree_node left = kdtree(pointList[0:median], next_axis)
-  cdef kdtree_node right = kdtree(pointList[median + 1:], next_axis)*/
-	int median = num_points / 2;
-	int right_sz = num_points - median;
-  int next_axis = pick_axis(axis);
-	kdtree_node* node = malloc(sizeof(kdtree_node));
+	kdtree_node *node = malloc(sizeof(kdtree_node));
 	if (NULL == node) {
 		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 		exit(OOM);
 	}
+	node->left = NULL;
+	node->right = NULL;
 
-	point_data p_median = points[median];
-	node->num = p_median.num;
-	int dims = 2;
-	node->coords = malloc(dims * sizeof(double));
+	/* Sort the points by axis; we need to mod the current axis before sorting to get
+	 * the comparison to work correctly */
+	size_t x;
+	for (x = 0; x < num_points; x++) {
+		points[x]->curr_axis = axis;
+	}
+	qsort(points, num_points, sizeof(*points), comp_axis);
+
+	/* Print input */
+	/*fprintf(stderr, "========== Num points after sort: %d\n", num_points);
+	print_points(points, num_points);*/
+
+	int next_axis = pick_axis(axis);
+	int median = num_points / 2;
+	int left_sz = median;
+	/*fprintf(stderr, "Median %d\n", median);*/
+	int right_sz = num_points - median - 1;
+
+	point_data *p_median = points[median];
+	node->num = p_median->num;
+
+	size_t coord_size = dims * sizeof(double);
+	node->coords = malloc(coord_size);
 	if (NULL == node->coords) {
 		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 		exit(OOM);
 	}
 	/* copy points over */
-	memcpy(node->coords, &(points[0]), dims);
+	memcpy(node->coords, p_median->coords, coord_size);
+	/*fprintf(stderr, "Current node: index %d, number %d, coords (%f, %f)\n", median, node->num, node->coords[0], node->coords[1]);*/
 
+	/*if (left_sz > 0) {
+		fprintf(stderr, "======== left copy: [%d, %d)\n", 0, left_sz);
+	}
+	if (right_sz > 0) {
+		fprintf(stderr, "======== right copy: [%d, %d)\n", median + 1, median + 1 + right_sz);
+	}*/
 	/* Now divide and recurse left/right */
-	{
-		point_data *left_arr;
-		int cp_sz = median * sizeof(point_data);
-		left_arr = malloc(cp_sz);
+	if (left_sz > 0) {
+		/* Left side goes from [0, median), i.e. does not include the median */
+		size_t cp_sz = left_sz * sizeof(point_data *);
+		point_data **left_arr = malloc(cp_sz);
 		if (NULL == left_arr) {
 			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 			exit(OOM);
 		}
-		memcpy(left_arr, &(points[0]), cp_sz);
-		node->left = fill_tree(left_arr, median, next_axis);
+		/*fprintf(stderr, "starting left copy for %d points\n", left_sz);*/
+		memcpy(left_arr, points, cp_sz);
+		/*print_points(left_arr, left_sz);*/
+		/*fprintf(stderr, "Recursing for left\n");*/
+		node->left = fill_tree(left_arr, median, dims, next_axis);
 		free(left_arr);
+		/*fprintf(stderr, "finished left copy\n");*/
 	}
+	/* Right side goes from [median + 1, num_points).  The current node is the median, and
+	 * we run up to the last element in the subarray.*/
 
-	{
-		point_data *right_arr;
-		int cp_sz = right_sz * sizeof(point_data);
-		right_arr = malloc(cp_sz);
+	if (right_sz > 0) {
+		size_t cp_sz = right_sz * sizeof(point_data *);
+		point_data **right_arr = malloc(cp_sz);
 		if (NULL == right_arr) {
 			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 			exit(OOM);
 		}
-		memcpy(&right_arr, &(points[median + 1]), cp_sz);
-		node->right = fill_tree(right_arr, right_sz, next_axis);
+		/*fprintf(stderr, "Recursing for right\n");*/
+		memcpy(right_arr, &(points[median + 1]), cp_sz);
+		node->right = fill_tree(right_arr, right_sz, dims, next_axis);
 		free(right_arr);
+		/*fprintf(stderr, "finished right copy\n");*/
 	}
 	return node;
+}
+
+extern void free_tree(kdtree_node * node) {
+	if (NULL == node) {
+		return;
+	}
+	if (NULL != node->right) {
+		free_tree(node->right);
+	}
+	if (NULL != node->left) {
+		free_tree(node->left);
+	}
+	if (NULL != node->coords) {
+		free(node->coords);
+	}
+	free(node);
+	/* TODO think this needs to be a pointer to a pointer for this NULL to work. */
+	node = NULL;
 }
 
 /* Functions directly related to KD-tree functionality */
 
 /* Adds the search to the list of best nodes if it is closer than the current best
-   list. */
+	 list. */
 static int add_best(
 		int count, 
 		double nodepoint[], 
@@ -165,7 +244,7 @@ static int add_best(
 
 /* Searches for nearest neighbor of search using node as the root. */
 static int nn_search(
-		kdtree_node *node, 
+		const kdtree_node *node, 
 		int search_num,
 		double search[],
 		best_pair best[], 

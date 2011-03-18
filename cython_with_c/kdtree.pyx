@@ -22,9 +22,12 @@ cdef extern from "kdtree_raw.h":
 
   struct point_data:
     int num
+    int curr_axis
     double * coords
 
-  extern void c_run_nn_search "run_nn_search" (kdtree_node *, int [], int, int, double search[])
+  extern void c_run_nn_search "run_nn_search" (kdtree_node *, int [], int, int, double[])
+  extern kdtree_node * c_fill_tree "fill_tree" (point_data **, int, int, int)
+  extern void free_tree(kdtree_node *)
 
 cdef extern from "stdlib.h":
   void free(void* ptr)
@@ -88,22 +91,53 @@ cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
   cdef kdtree_node *root
 
-  cdef dealloc_tree(self, kdtree_node * node):
-    """free the memory associated with root and its children"""
-    if NULL == node:
-      return
-    self.dealloc_tree(node.left)
-    self.dealloc_tree(node.right)
-    free(node.coords)
-    free(node)
-    node = NULL
-
   def __dealloc__(self):
-    self.dealloc_tree(self.root)
+    """free the memory associated with root and its children"""
+    free_tree(self.root)
+    # TODO let the C code handle this once we've fixed the NULL assignment problem
+    self.root = NULL
 
   def __init__(self, pointList):
+    cdef point_data **points
+    cdef double * coords = NULL
+    cdef int num_points, i, point_num
+    cdef int dims = 0
     if NULL == self.root:
-      self.root = fill_tree(pointList, 0)
+      num_points = len(pointList)
+      points = <point_data **>malloc(num_points * sizeof(point_data *))
+      if not points:
+        raise MemoryError()
+
+      try:
+        # build up the point_data array that the C code desires
+        for i in xrange(num_points):
+          curr_point = pointList[i]
+          point_num = curr_point[0]
+
+          in_points = curr_point[1]
+          dims = len(in_points)
+
+          points[i] = <point_data *>malloc(sizeof(point_data))
+          if not points[i]:
+            raise MemoryError()
+
+          points[i].num = point_num
+
+          points[i].coords = <double *>malloc(dims * sizeof(double))
+          if not points[i].coords:
+            raise MemoryError()
+
+          for d in xrange(dims):
+            points[i].coords[d] = in_points[d]
+
+        self.root = c_fill_tree(points, num_points, dims, 0)
+      finally:
+        for i in range(num_points):
+          if NULL != points[i]:
+            if NULL != points[i].coords:
+              free(points[i].coords)
+            free(points[i])
+        free(points)
 
   cpdef run_nn_search(self, int search_num, search, int num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
