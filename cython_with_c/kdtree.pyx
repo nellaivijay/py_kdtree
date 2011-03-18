@@ -33,60 +33,6 @@ cdef extern from "stdlib.h":
   void free(void* ptr)
   void* malloc(size_t size)
 
-def axis0PointKey(point):
-  """Sort for axis zero (i.e. X axis)"""
-  return point[1][0]
-
-def axis1PointKey(point):
-  """Sort for axis one (i.e. Y axis)"""
-  return point[1][1]
-
-cdef kdtree_node * fill_tree(pointList, int axis):
-  """ Constructs a KD-tree and returns the root node.  pointList is a tuple of (ID, [x,y])"""
-  if not pointList:
-    return NULL
-
-  # Normally we'd elect axis based on depth so that axis cycles through 
-  # all valid values.  Here we know we have 2-dimensional values, so don't 
-  # waste time calculating, but just alternate
-  #k = len(pointList[0][1]) # assumes all points have the same dimension
-
-  # Sort point list and choose median as pivot element
-  # Note that pointList[0] = number, pointList[1] = lat, long coordinates
-  # sort is faster using strings, so we use point[1]
-  #pointList.sort(key=lambda point: point[1][axis])
-  if axis == 0:
-    pointList.sort(key=axis0PointKey)
-  else:
-    pointList.sort(key=axis1PointKey)
-
-  cdef int median = len(pointList) / 2
-
-  cdef int next_axis = 1
-  if 1 == axis:
-    next_axis = 0
-
-  cdef kdtree_node *node = <kdtree_node *>malloc(sizeof(kdtree_node))
-  if not node:
-    raise MemoryError()
-
-  pl_median = pointList[median]
-  cdef int number = pl_median[0]
-  node.num = number
-  in_points = pl_median[1]
-  cdef int point_sz = len(in_points)
-  cdef double * coords = <double *>malloc(point_sz * sizeof(double))
-  if not coords:
-    raise MemoryError()
-
-  cdef int i
-  for i in xrange(point_sz):
-    coords[i] = in_points[i]
-  node.coords = coords
-  node.left = fill_tree(pointList[0:median], next_axis)
-  node.right = fill_tree(pointList[median + 1:], next_axis)
-  return node
-
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
   cdef kdtree_node *root
