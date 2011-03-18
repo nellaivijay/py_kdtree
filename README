@@ -5,17 +5,15 @@ It is mostly meant as an example for:
 2. How to wrap C code in Python using Cython (cython_with_c directory).
 3. How to generate C code with just Cython (cython_wrapper directory).
 
+I took my inspiration from http://code.google.com/p/python-kdtree/ and
+http://en.wikipedia.org/wiki/Kd-tree.
+
 The KD-tree implementation itself is sort of a side issue; it works, but it is missing
 features like adding nodes.  The reason for bothering to write this in Cython/C is that
-a pure Python implementation is slow.  On a sample run (with the file in Linux's cache),
-it takes 12 minutes to search for 3 nearest neighbors on a
-100,000 node tree using pure Python.  The implementations for (2) and (3) take 1.8 and 
-3.3 seconds, which is a significant speed increase.
-
-Currently it is hardcoded for two dimensions.  I am working on adding multiple dimensions
-to (2) and (3), as well as unifying the API and making it easier to use.
-I took my inspiration from http://code.google.com/p/python-kdtree/ and
-http://en.wikipedia.org/wiki/Kd-tree, so those might be a good start.
+a pure Python implementation is slow.  On my machine (a dual-core 3GHz with 4 GB of RAM)
+a sample run (with the file in Linux's cache), it takes 12 minutes to search for 3 
+nearest neighbors on a 100,000 node tree using pure Python.  The implementations for (2) 
+and (3) take ~2 and ~6 seconds, which is a significant speed increase.
 
 This is my first C extension to Python, so there may be something I've done incredibly
 wrong-please email me if you discover a bug.  I've tested this against several trees,
