@@ -46,7 +46,7 @@ cdef class KDTreeNode:
   def __init__(self, pointList):
     cdef point_data **points
     cdef double * coords = NULL
-    cdef int num_points, i, point_num
+    cdef int num_points, i, d, point_num
     cdef int dims = 0
     if NULL == self.root:
       num_points = len(pointList)
@@ -78,7 +78,7 @@ cdef class KDTreeNode:
 
         self.root = c_fill_tree(points, num_points, dims, 0)
       finally:
-        for i in range(num_points):
+        for i in xrange(num_points):
           if NULL != points[i]:
             if NULL != points[i].coords:
               free(points[i].coords)
