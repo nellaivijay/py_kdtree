@@ -61,8 +61,6 @@ static int comp_axis(const void *a, const void *b) {
 	int axis = (*pa)->curr_axis;
 	double a_coord = (*pa)->coords[axis];
 	double b_coord = (*pb)->coords[axis];
-	/*fprintf(stderr, "a coord %f\n", a_coord);
-	fprintf(stderr, "b coord %f\n", b_coord);*/
 	if (a_coord < b_coord) {
 		return -1;
 	}
@@ -77,6 +75,23 @@ static void print_points(point_data **points, int num_points) {
 	for (y = 0; y < num_points; y++) {
 		fprintf(stderr, "cpoint %f, %f\n", points[y]->coords[0], points[y]->coords[1]);
 	}
+}
+
+/*
+ * Slices the points_data array using the given start address and the slice size.
+ * Note that this does not perform a deep copy, but just copies the pointers so
+ * they can be reordered without touching the original array.
+ */
+static point_data **slice(point_data **points, size_t start, size_t end) {
+	size_t slice_sz = end - start;
+	size_t cp_sz = slice_sz * sizeof(point_data *);
+	point_data **sliced = malloc(cp_sz);
+	if (NULL == sliced) {
+		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+		exit(OOM);
+	}
+	memcpy(sliced, &(points[start]), cp_sz);
+	return sliced;
 }
 
 /*
@@ -106,12 +121,9 @@ static kdtree_node * fill_tree_r(point_data **points, int num_points, int dims, 
 	qsort(points, num_points, sizeof(*points), comp_axis);
 
 	/* Print input */
-	/*fprintf(stderr, "========== Num points after sort: %d\n", num_points);
-	print_points(points, num_points);*/
 
 	int median = num_points / 2;
 	int left_sz = median;
-	/*fprintf(stderr, "Median %d\n", median);*/
 	int right_sz = num_points - median - 1;
 
 	point_data *p_median = points[median];
@@ -125,47 +137,22 @@ static kdtree_node * fill_tree_r(point_data **points, int num_points, int dims, 
 	}
 	/* copy points over */
 	memcpy(node->coords, p_median->coords, coord_size);
-	/*fprintf(stderr, "Current node: index %d, number %d, coords (%f, %f)\n", median, node->num, node->coords[0], node->coords[1]);*/
 
-	/*if (left_sz > 0) {
-		fprintf(stderr, "======== left copy: [%d, %d)\n", 0, left_sz);
-	}
-	if (right_sz > 0) {
-		fprintf(stderr, "======== right copy: [%d, %d)\n", median + 1, median + 1 + right_sz);
-	}*/
 	/* Now divide and recurse left/right */
 	int next_depth = depth + 1;
 	if (left_sz > 0) {
 		/* Left side goes from [0, median), i.e. does not include the median */
-		size_t cp_sz = left_sz * sizeof(point_data *);
-		point_data **left_arr = malloc(cp_sz);
-		if (NULL == left_arr) {
-			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
-			exit(OOM);
-		}
-		/*fprintf(stderr, "starting left copy for %d points\n", left_sz);*/
-		memcpy(left_arr, points, cp_sz);
-		/*print_points(left_arr, left_sz);*/
-		/*fprintf(stderr, "Recursing for left\n");*/
+		point_data **left_arr = slice(points, 0, median);
 		node->left = fill_tree_r(left_arr, median, dims, next_depth);
 		free(left_arr);
-		/*fprintf(stderr, "finished left copy\n");*/
 	}
+
 	/* Right side goes from [median + 1, num_points).  The current node is the median, and
 	 * we run up to the last element in the subarray.*/
-
 	if (right_sz > 0) {
-		size_t cp_sz = right_sz * sizeof(point_data *);
-		point_data **right_arr = malloc(cp_sz);
-		if (NULL == right_arr) {
-			fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
-			exit(OOM);
-		}
-		/*fprintf(stderr, "Recursing for right\n");*/
-		memcpy(right_arr, &(points[median + 1]), cp_sz);
+		point_data **right_arr = slice(points, median + 1, num_points);
 		node->right = fill_tree_r(right_arr, right_sz, dims, next_depth);
 		free(right_arr);
-		/*fprintf(stderr, "finished right copy\n");*/
 	}
 	return node;
 }
