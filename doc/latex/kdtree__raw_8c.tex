@@ -1,0 +1,237 @@
+\hypertarget{kdtree__raw_8c}{
+\section{cython\_\-with\_\-c/kdtree\_\-raw.c File Reference}
+\label{kdtree__raw_8c}\index{cython\_\-with\_\-c/kdtree\_\-raw.c@{cython\_\-with\_\-c/kdtree\_\-raw.c}}
+}
+{\ttfamily \#include $<$stdio.h$>$}\par
+{\ttfamily \#include $<$stdlib.h$>$}\par
+{\ttfamily \#include $<$string.h$>$}\par
+{\ttfamily \#include \char`\"{}kdtree\_\-raw.h\char`\"{}}\par
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structbest__pair}{best\_\-pair}
+\begin{DoxyCompactList}\small\item\em Represents a neighbor of an arbitrary node. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{kdtree__raw_8c_acdbbf19ee9ade9adde2cacbfcd90e569}{OOM}~8
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structbest__pair}{best\_\-pair} \hyperlink{kdtree__raw_8c_a0f2a6a1ed1273b6d42968d704881f14d}{best\_\-pair}
+\begin{DoxyCompactList}\small\item\em Represents a neighbor of an arbitrary node. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+static double \hyperlink{kdtree__raw_8c_a2b4c0342079569ac2cde270330189d9c}{largest\_\-dist} (\hyperlink{structbest__pair}{best\_\-pair} nearest\mbox{[}$\,$\mbox{]}, size\_\-t count)
+\begin{DoxyCompactList}\small\item\em Determine the largest element in the nearest neighbors array. \item\end{DoxyCompactList}\item 
+static size\_\-t \hyperlink{kdtree__raw_8c_ae272f2608a7614562c07653710f60695}{pick\_\-axis} (size\_\-t depth, size\_\-t dims)
+\begin{DoxyCompactList}\small\item\em Choose the axis to use based on the current depth and the number of dimensions. \item\end{DoxyCompactList}\item 
+double \hyperlink{kdtree__raw_8c_ab1831ab5a86e21da4fefdd75b9e310d3}{sqdist} (double a\mbox{[}$\,$\mbox{]}, double b\mbox{[}$\,$\mbox{]}, size\_\-t dims)
+\begin{DoxyCompactList}\small\item\em Computes the Euclidean distance between two k-\/dimensional points. \item\end{DoxyCompactList}\item 
+static int \hyperlink{kdtree__raw_8c_aaaedb7b8636f096609529f34690ce145}{comp\_\-axis} (const void $\ast$a, const void $\ast$b)
+\begin{DoxyCompactList}\small\item\em Compares two point\_\-data items based on the coordinate and their current axis. \item\end{DoxyCompactList}\item 
+static void \hyperlink{kdtree__raw_8c_a5240642719a4c67e7b5d2a14994c446f}{print\_\-points} (const point\_\-data $\ast$$\ast$points, size\_\-t sz)
+\begin{DoxyCompactList}\small\item\em Debug method to print out the points array. \item\end{DoxyCompactList}\item 
+static point\_\-data $\ast$$\ast$ \hyperlink{kdtree__raw_8c_a5210e76e74aab1859e4d313d3ca3e4ca}{slice} (point\_\-data $\ast$$\ast$points, size\_\-t start, size\_\-t end)
+\begin{DoxyCompactList}\small\item\em Slices the points\_\-data array. \item\end{DoxyCompactList}\item 
+static kdtree\_\-node $\ast$ \hyperlink{kdtree__raw_8c_a9c2d7c1e883400efd9f38c1d0de83600}{fill\_\-tree\_\-r} (point\_\-data $\ast$$\ast$points, size\_\-t num\_\-points, size\_\-t depth)
+\begin{DoxyCompactList}\small\item\em Builds up a tree using the given point\_\-data. \item\end{DoxyCompactList}\item 
+kdtree\_\-node $\ast$ \hyperlink{kdtree__raw_8c_ac6f0b44fb0c280e06cd9ec5fe5490073}{fill\_\-tree} (point\_\-data $\ast$$\ast$points, size\_\-t num\_\-points)
+\begin{DoxyCompactList}\small\item\em Builds up a tree using the given point\_\-data. \item\end{DoxyCompactList}\item 
+void \hyperlink{kdtree__raw_8c_afb727266d4a5034530dc8d25dcdec9b9}{free\_\-tree} (kdtree\_\-node $\ast$node)
+\begin{DoxyCompactList}\small\item\em Recursively free()s the elements of the tree. \item\end{DoxyCompactList}\item 
+static size\_\-t \hyperlink{kdtree__raw_8c_a0a9e219913da5200676f1b8ed8870eda}{add\_\-best} (\hyperlink{structbest__pair}{best\_\-pair} nearest\mbox{[}$\,$\mbox{]}, size\_\-t best\_\-count, const kdtree\_\-node $\ast$neighbor, point\_\-data search, size\_\-t num\_\-neighbors)
+\begin{DoxyCompactList}\small\item\em Adds the search point to the list of nearest neighbors if it is closer than any of the current nearest neighbors. \item\end{DoxyCompactList}\item 
+static size\_\-t \hyperlink{kdtree__raw_8c_a9132de05ad0c2e158ed02e54d727a13d}{nn\_\-search} (const kdtree\_\-node $\ast$node, point\_\-data search, \hyperlink{structbest__pair}{best\_\-pair} nearest\mbox{[}$\,$\mbox{]}, size\_\-t best\_\-count, size\_\-t num\_\-neighbors, size\_\-t depth)
+\begin{DoxyCompactList}\small\item\em Searches for nearest neighbor of search using node as the root. \item\end{DoxyCompactList}\item 
+void \hyperlink{kdtree__raw_8c_aa4921987941d48ab09d76ceec9aeda68}{run\_\-nn\_\-search} (kdtree\_\-node $\ast$root, size\_\-t num\_\-neighbors, point\_\-data search, int best\_\-nums\mbox{[}$\,$\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\subsection{Define Documentation}
+\hypertarget{kdtree__raw_8c_acdbbf19ee9ade9adde2cacbfcd90e569}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!OOM@{OOM}}
+\index{OOM@{OOM}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{OOM}]{\setlength{\rightskip}{0pt plus 5cm}\#define OOM~8}}
+\label{kdtree__raw_8c_acdbbf19ee9ade9adde2cacbfcd90e569}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{kdtree__raw_8c_a0f2a6a1ed1273b6d42968d704881f14d}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!best\_\-pair@{best\_\-pair}}
+\index{best\_\-pair@{best\_\-pair}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{best\_\-pair}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf best\_\-pair}  {\bf best\_\-pair}}}
+\label{kdtree__raw_8c_a0f2a6a1ed1273b6d42968d704881f14d}
+
+
+Represents a neighbor of an arbitrary node. 
+
+This is a combination of node number and distance to said arbitrary node. 
+
+\subsection{Function Documentation}
+\hypertarget{kdtree__raw_8c_a0a9e219913da5200676f1b8ed8870eda}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!add\_\-best@{add\_\-best}}
+\index{add\_\-best@{add\_\-best}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{add\_\-best}]{\setlength{\rightskip}{0pt plus 5cm}static size\_\-t add\_\-best ({\bf best\_\-pair} {\em nearest}\mbox{[}$\,$\mbox{]}, \/  size\_\-t {\em best\_\-count}, \/  const kdtree\_\-node $\ast$ {\em neighbor}, \/  point\_\-data {\em search}, \/  size\_\-t {\em num\_\-neighbors})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a0a9e219913da5200676f1b8ed8870eda}
+
+
+Adds the search point to the list of nearest neighbors if it is closer than any of the current nearest neighbors. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em nearest}]The current nearest neighbors. Will be filled in by this function. \item[\mbox{$\leftarrow$} {\em best\_\-count}]The number of current nearest neighbors. \item[\mbox{$\leftarrow$} {\em neighbor}]The node to consider as a potential nearest neighbor. \item[\mbox{$\leftarrow$} {\em search}]The point for which the nearest neighbor search is being done. \item[\mbox{$\leftarrow$} {\em num\_\-neighbors}]The maximum number of nearest neighbors. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of current nearest neighbors. If best\_\-count $<$ num\_\-neigbors, this will be one more than best\_\-count; otherwise it will be equal to num\_\-neighbors. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_aaaedb7b8636f096609529f34690ce145}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!comp\_\-axis@{comp\_\-axis}}
+\index{comp\_\-axis@{comp\_\-axis}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{comp\_\-axis}]{\setlength{\rightskip}{0pt plus 5cm}static int comp\_\-axis (const void $\ast$ {\em a}, \/  const void $\ast$ {\em b})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_aaaedb7b8636f096609529f34690ce145}
+
+
+Compares two point\_\-data items based on the coordinate and their current axis. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em a}]The first point\_\-data item to compare. The curr\_\-axis member must be set by the caller. \item[\mbox{$\leftarrow$} {\em b}]The second point\_\-data item to compare. The curr\_\-axis member must be set by the caller. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+-\/1 if a.coords\mbox{[}curr\_\-axis\mbox{]} $<$ b.coords\mbox{[}curr\_\-axis\mbox{]}, 1 if a.coords\mbox{[}curr\_\-axis\mbox{]} $>$ b.coords\mbox{[}curr\_\-axis\mbox{]}, 0 otherwise. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_ac6f0b44fb0c280e06cd9ec5fe5490073}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!fill\_\-tree@{fill\_\-tree}}
+\index{fill\_\-tree@{fill\_\-tree}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{fill\_\-tree}]{\setlength{\rightskip}{0pt plus 5cm}kdtree\_\-node$\ast$ fill\_\-tree (point\_\-data $\ast$$\ast$ {\em points}, \/  size\_\-t {\em num\_\-points})}}
+\label{kdtree__raw_8c_ac6f0b44fb0c280e06cd9ec5fe5490073}
+
+
+Builds up a tree using the given point\_\-data. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em points}]The points\_\-data used to build the tree. This function copies the pointers in this parameter so the caller is free to dispose of it after the call. \item[\mbox{$\leftarrow$} {\em num\_\-points}]The number of points in the points\_\-data array. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A newly malloc'd KD tree node. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_a9c2d7c1e883400efd9f38c1d0de83600}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!fill\_\-tree\_\-r@{fill\_\-tree\_\-r}}
+\index{fill\_\-tree\_\-r@{fill\_\-tree\_\-r}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{fill\_\-tree\_\-r}]{\setlength{\rightskip}{0pt plus 5cm}static kdtree\_\-node$\ast$ fill\_\-tree\_\-r (point\_\-data $\ast$$\ast$ {\em points}, \/  size\_\-t {\em num\_\-points}, \/  size\_\-t {\em depth})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a9c2d7c1e883400efd9f38c1d0de83600}
+
+
+Builds up a tree using the given point\_\-data. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em points}]The points\_\-data used to build the tree. This function copies the pointers in this parameter so the caller is free to dispose of it after the call. \item[\mbox{$\leftarrow$} {\em num\_\-points}]The number of points in the points\_\-data array. \item[\mbox{$\leftarrow$} {\em depth}]The current depth of the tree. Used to correctly sort and split the points \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A newly malloc'd KD tree node. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_afb727266d4a5034530dc8d25dcdec9b9}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!free\_\-tree@{free\_\-tree}}
+\index{free\_\-tree@{free\_\-tree}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{free\_\-tree}]{\setlength{\rightskip}{0pt plus 5cm}void free\_\-tree (kdtree\_\-node $\ast$ {\em node})}}
+\label{kdtree__raw_8c_afb727266d4a5034530dc8d25dcdec9b9}
+
+
+Recursively free()s the elements of the tree. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em node}]The root of the tree to free. \end{DoxyParams}
+\hypertarget{kdtree__raw_8c_a2b4c0342079569ac2cde270330189d9c}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!largest\_\-dist@{largest\_\-dist}}
+\index{largest\_\-dist@{largest\_\-dist}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{largest\_\-dist}]{\setlength{\rightskip}{0pt plus 5cm}static double largest\_\-dist ({\bf best\_\-pair} {\em nearest}\mbox{[}$\,$\mbox{]}, \/  size\_\-t {\em count})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a2b4c0342079569ac2cde270330189d9c}
+
+
+Determine the largest element in the nearest neighbors array. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em nearest}]The array of nearest neighbors. \item[\mbox{$\leftarrow$} {\em count}]The number of current nearest neighbors. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The largest value in the nearest neighbors array (i.e. the neighbor that is farthest away). 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_a9132de05ad0c2e158ed02e54d727a13d}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!nn\_\-search@{nn\_\-search}}
+\index{nn\_\-search@{nn\_\-search}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{nn\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}static size\_\-t nn\_\-search (const kdtree\_\-node $\ast$ {\em node}, \/  point\_\-data {\em search}, \/  {\bf best\_\-pair} {\em nearest}\mbox{[}$\,$\mbox{]}, \/  size\_\-t {\em best\_\-count}, \/  size\_\-t {\em num\_\-neighbors}, \/  size\_\-t {\em depth})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a9132de05ad0c2e158ed02e54d727a13d}
+
+
+Searches for nearest neighbor of search using node as the root. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em node}]The node to consider as a potential nearest neighbor. \item[\mbox{$\leftarrow$} {\em search}]The point for which the nearest neighbor search is being done. \item[\mbox{$\leftarrow$} {\em nearest}]The current nearest neighbors. Will be filled in by this function. \item[\mbox{$\leftarrow$} {\em best\_\-count}]The number of current nearest neighbors. \item[\mbox{$\leftarrow$} {\em num\_\-neighbors}]The maximum number of nearest neighbors. \item[{\em \mbox{[}depth\mbox{]}}]The current depth in the search tree.\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of current nearest neighbors. If best\_\-count $<$ num\_\-neigbors, this will be one more than best\_\-count; otherwise it will be equal to num\_\-neighbors. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_ae272f2608a7614562c07653710f60695}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!pick\_\-axis@{pick\_\-axis}}
+\index{pick\_\-axis@{pick\_\-axis}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{pick\_\-axis}]{\setlength{\rightskip}{0pt plus 5cm}static size\_\-t pick\_\-axis (size\_\-t {\em depth}, \/  size\_\-t {\em dims})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_ae272f2608a7614562c07653710f60695}
+
+
+Choose the axis to use based on the current depth and the number of dimensions. 
+
+This is useful when building the tree and search for nearest neighbors. 
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em depth}]The current depth in the tree. \item[\mbox{$\leftarrow$} {\em dims}]The number of dimensions in the points used for the tree. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The axis to use. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_a5240642719a4c67e7b5d2a14994c446f}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!print\_\-points@{print\_\-points}}
+\index{print\_\-points@{print\_\-points}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{print\_\-points}]{\setlength{\rightskip}{0pt plus 5cm}static void print\_\-points (const point\_\-data $\ast$$\ast$ {\em points}, \/  size\_\-t {\em sz})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a5240642719a4c67e7b5d2a14994c446f}
+
+
+Debug method to print out the points array. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em points}]The points array to print. \item[\mbox{$\leftarrow$} {\em sz}]The number of points in the array. \end{DoxyParams}
+\hypertarget{kdtree__raw_8c_aa4921987941d48ab09d76ceec9aeda68}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!run\_\-nn\_\-search@{run\_\-nn\_\-search}}
+\index{run\_\-nn\_\-search@{run\_\-nn\_\-search}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{run\_\-nn\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}void run\_\-nn\_\-search (kdtree\_\-node $\ast$ {\em root}, \/  size\_\-t {\em num\_\-neighbors}, \/  point\_\-data {\em search}, \/  int {\em best\_\-nums}\mbox{[}$\,$\mbox{]})}}
+\label{kdtree__raw_8c_aa4921987941d48ab09d76ceec9aeda68}
+\hypertarget{kdtree__raw_8c_a5210e76e74aab1859e4d313d3ca3e4ca}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!slice@{slice}}
+\index{slice@{slice}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{slice}]{\setlength{\rightskip}{0pt plus 5cm}static point\_\-data$\ast$$\ast$ slice (point\_\-data $\ast$$\ast$ {\em points}, \/  size\_\-t {\em start}, \/  size\_\-t {\em end})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree__raw_8c_a5210e76e74aab1859e4d313d3ca3e4ca}
+
+
+Slices the points\_\-data array. 
+
+Note that this does not perform a deep copy, but just copies the pointers so they can be reordered without touching the original array. 
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em points}]The array of points to slice. \item[\mbox{$\leftarrow$} {\em start}]The starting point of the slice (inclusive). \item[\mbox{$\leftarrow$} {\em end}]The ending point of the slice (exclusive). \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The slice of the array. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8c_ab1831ab5a86e21da4fefdd75b9e310d3}{
+\index{kdtree\_\-raw.c@{kdtree\_\-raw.c}!sqdist@{sqdist}}
+\index{sqdist@{sqdist}!kdtree_raw.c@{kdtree\_\-raw.c}}
+\subsubsection[{sqdist}]{\setlength{\rightskip}{0pt plus 5cm}double sqdist (double {\em a}\mbox{[}$\,$\mbox{]}, \/  double {\em b}\mbox{[}$\,$\mbox{]}, \/  size\_\-t {\em dims})}}
+\label{kdtree__raw_8c_ab1831ab5a86e21da4fefdd75b9e310d3}
+
+
+Computes the Euclidean distance between two k-\/dimensional points. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em a}]The first point. \item[\mbox{$\leftarrow$} {\em b}]The second point. \item[\mbox{$\leftarrow$} {\em dims}]The number of dimensions in each point. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The Euclidean distance between a and b. 
+\end{DoxyReturn}

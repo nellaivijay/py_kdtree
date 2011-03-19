@@ -1,0 +1,247 @@
+\hypertarget{kdtree_8c}{
+\section{kdtree.c File Reference}
+\label{kdtree_8c}\index{kdtree.c@{kdtree.c}}
+}
+{\ttfamily \#include $<$Python.h$>$}\par
+{\ttfamily \#include \char`\"{}structmember.h\char`\"{}}\par
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structKDTreeNode}{KDTreeNode}
+\item 
+struct \hyperlink{structbest__pair}{best\_\-pair}
+\begin{DoxyCompactList}\small\item\em Represents a neighbor of an arbitrary node. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{kdtree_8c_a5977928b042d0a4b2ce93baa979e5f5c}{LIMIT}~3
+\item 
+\#define \hyperlink{kdtree_8c_a75c7c5d977b65e67c0b0d80fc079004f}{PyMODINIT\_\-FUNC}~void
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+static PyObject $\ast$ \hyperlink{kdtree_8c_a79b97d88944956d282e4a3655966379b}{KDTreeNode\_\-getright} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, void $\ast$closure)
+\item 
+static int \hyperlink{kdtree_8c_ad4b7deeae2f1708cd418e9a913683265}{KDTreeNode\_\-setright} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, PyObject $\ast$value, void $\ast$closure)
+\item 
+static PyObject $\ast$ \hyperlink{kdtree_8c_a71d421569b3956be0bae4dbfd180ad52}{KDTreeNode\_\-getleft} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, void $\ast$closure)
+\item 
+static int \hyperlink{kdtree_8c_ae4be6e4f408f67eeca3405d60ac3a74d}{KDTreeNode\_\-setleft} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, PyObject $\ast$value, void $\ast$closure)
+\item 
+static PyObject $\ast$ \hyperlink{kdtree_8c_ad5fe0cf0ac9b49a4ad7e24a34613d0e8}{KDTreeNode\_\-run\_\-nn\_\-search} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, PyObject $\ast$args)
+\item 
+static int \hyperlink{kdtree_8c_ac990fbbb466d481e464e1c9db5b064b1}{KDTreeNode\_\-setcoords} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, PyObject $\ast$value, void $\ast$closure)
+\item 
+static PyObject $\ast$ \hyperlink{kdtree_8c_a25f75aa15c3ade32165c1df2714e144e}{KDTreeNode\_\-getcoords} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, void $\ast$closure)
+\item 
+static double \hyperlink{kdtree_8c_a6aa6aec6c6d525c3085f02fd175cbb9f}{largest\_\-dist} (struct \hyperlink{structbest__pair}{best\_\-pair} best\mbox{[}$\,$\mbox{]}, int count)
+\item 
+static int \hyperlink{kdtree_8c_a1d745a50ccff8a0396ff8351ebc527c3}{pick\_\-axis} (int axis)
+\item 
+static double \hyperlink{kdtree_8c_aa6416c7f3f6a32077f30a804be586d68}{sqdist} (double ax, double bx, double ay, double by)
+\item 
+static int \hyperlink{kdtree_8c_a161f677021ddf68074bfca063cbab360}{add\_\-best} (int count, double nodepoint\mbox{[}$\,$\mbox{]}, int node\_\-num, double point\mbox{[}$\,$\mbox{]}, struct \hyperlink{structbest__pair}{best\_\-pair} best\mbox{[}$\,$\mbox{]})
+\item 
+static int \hyperlink{kdtree_8c_a9819169541a86e3585e4a11c5c7f602e}{nn\_\-search} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$node, int point\_\-num, double search\_\-x, double search\_\-y, struct \hyperlink{structbest__pair}{best\_\-pair} best\mbox{[}$\,$\mbox{]}, int count, int axis)
+\item 
+static int \hyperlink{kdtree_8c_af0efa3ed1028e2da2e194a7a8af2cf8a}{KDTreeNode\_\-traverse} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, visitproc visit, void $\ast$arg)
+\item 
+static int \hyperlink{kdtree_8c_a8ee696541edee0c58c7fbb2bd0947e9c}{KDTreeNode\_\-clear} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self)
+\item 
+static void \hyperlink{kdtree_8c_a4e20da4475c906b7d133d4c2edf48ae4}{KDTreeNode\_\-dealloc} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self)
+\item 
+static PyObject $\ast$ \hyperlink{kdtree_8c_a6ffefea35b25cbeccd44acc1a833544a}{KDTreeNode\_\-new} (PyTypeObject $\ast$type, PyObject $\ast$args, PyObject $\ast$kwds)
+\item 
+static int \hyperlink{kdtree_8c_a9d7413f2948dd8c519aa3f5cb91d0f69}{KDTreeNode\_\-init} (\hyperlink{structKDTreeNode}{KDTreeNode} $\ast$self, PyObject $\ast$args, PyObject $\ast$kwds)
+\item 
+PyMODINIT\_\-FUNC \hyperlink{kdtree_8c_a6eb3cafc18e008ae65775449c3e10930}{initkdtree} (void)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static PyMemberDef \hyperlink{kdtree_8c_a9e31f0ca5a431a6e68f0523603632e4c}{KDTreeNode\_\-members} \mbox{[}$\,$\mbox{]}
+\item 
+static PyGetSetDef \hyperlink{kdtree_8c_a45d07697dc1f06a4ad912aa082a65ed5}{KDTreeNode\_\-getseters} \mbox{[}$\,$\mbox{]}
+\item 
+static PyMethodDef \hyperlink{kdtree_8c_aba00912f85d48c951ee3802c73e459e2}{KDTreeNode\_\-methods} \mbox{[}$\,$\mbox{]}
+\item 
+static PyTypeObject \hyperlink{kdtree_8c_aed333a423a032ae874254710f0515a48}{KDTreeNodeType}
+\item 
+static PyMethodDef \hyperlink{kdtree_8c_afcd2b5e08091d3973eb552badcfec160}{module\_\-methods} \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsection{Define Documentation}
+\hypertarget{kdtree_8c_a5977928b042d0a4b2ce93baa979e5f5c}{
+\index{kdtree.c@{kdtree.c}!LIMIT@{LIMIT}}
+\index{LIMIT@{LIMIT}!kdtree.c@{kdtree.c}}
+\subsubsection[{LIMIT}]{\setlength{\rightskip}{0pt plus 5cm}\#define LIMIT~3}}
+\label{kdtree_8c_a5977928b042d0a4b2ce93baa979e5f5c}
+\hypertarget{kdtree_8c_a75c7c5d977b65e67c0b0d80fc079004f}{
+\index{kdtree.c@{kdtree.c}!PyMODINIT\_\-FUNC@{PyMODINIT\_\-FUNC}}
+\index{PyMODINIT\_\-FUNC@{PyMODINIT\_\-FUNC}!kdtree.c@{kdtree.c}}
+\subsubsection[{PyMODINIT\_\-FUNC}]{\setlength{\rightskip}{0pt plus 5cm}\#define PyMODINIT\_\-FUNC~void}}
+\label{kdtree_8c_a75c7c5d977b65e67c0b0d80fc079004f}
+
+
+\subsection{Function Documentation}
+\hypertarget{kdtree_8c_a161f677021ddf68074bfca063cbab360}{
+\index{kdtree.c@{kdtree.c}!add\_\-best@{add\_\-best}}
+\index{add\_\-best@{add\_\-best}!kdtree.c@{kdtree.c}}
+\subsubsection[{add\_\-best}]{\setlength{\rightskip}{0pt plus 5cm}static int add\_\-best (int {\em count}, \/  double {\em nodepoint}\mbox{[}$\,$\mbox{]}, \/  int {\em node\_\-num}, \/  double {\em point}\mbox{[}$\,$\mbox{]}, \/  struct {\bf best\_\-pair} {\em best}\mbox{[}$\,$\mbox{]})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a161f677021ddf68074bfca063cbab360}
+\hypertarget{kdtree_8c_a6eb3cafc18e008ae65775449c3e10930}{
+\index{kdtree.c@{kdtree.c}!initkdtree@{initkdtree}}
+\index{initkdtree@{initkdtree}!kdtree.c@{kdtree.c}}
+\subsubsection[{initkdtree}]{\setlength{\rightskip}{0pt plus 5cm}PyMODINIT\_\-FUNC initkdtree (void)}}
+\label{kdtree_8c_a6eb3cafc18e008ae65775449c3e10930}
+\hypertarget{kdtree_8c_a8ee696541edee0c58c7fbb2bd0947e9c}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-clear@{KDTreeNode\_\-clear}}
+\index{KDTreeNode\_\-clear@{KDTreeNode\_\-clear}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-clear}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-clear ({\bf KDTreeNode} $\ast$ {\em self})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a8ee696541edee0c58c7fbb2bd0947e9c}
+\hypertarget{kdtree_8c_a4e20da4475c906b7d133d4c2edf48ae4}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-dealloc@{KDTreeNode\_\-dealloc}}
+\index{KDTreeNode\_\-dealloc@{KDTreeNode\_\-dealloc}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-dealloc}]{\setlength{\rightskip}{0pt plus 5cm}static void KDTreeNode\_\-dealloc ({\bf KDTreeNode} $\ast$ {\em self})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a4e20da4475c906b7d133d4c2edf48ae4}
+\hypertarget{kdtree_8c_a25f75aa15c3ade32165c1df2714e144e}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-getcoords@{KDTreeNode\_\-getcoords}}
+\index{KDTreeNode\_\-getcoords@{KDTreeNode\_\-getcoords}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-getcoords}]{\setlength{\rightskip}{0pt plus 5cm}static PyObject $\ast$ KDTreeNode\_\-getcoords ({\bf KDTreeNode} $\ast$ {\em self}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a25f75aa15c3ade32165c1df2714e144e}
+\hypertarget{kdtree_8c_a71d421569b3956be0bae4dbfd180ad52}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-getleft@{KDTreeNode\_\-getleft}}
+\index{KDTreeNode\_\-getleft@{KDTreeNode\_\-getleft}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-getleft}]{\setlength{\rightskip}{0pt plus 5cm}static PyObject $\ast$ KDTreeNode\_\-getleft ({\bf KDTreeNode} $\ast$ {\em self}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a71d421569b3956be0bae4dbfd180ad52}
+\hypertarget{kdtree_8c_a79b97d88944956d282e4a3655966379b}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-getright@{KDTreeNode\_\-getright}}
+\index{KDTreeNode\_\-getright@{KDTreeNode\_\-getright}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-getright}]{\setlength{\rightskip}{0pt plus 5cm}static PyObject $\ast$ KDTreeNode\_\-getright ({\bf KDTreeNode} $\ast$ {\em self}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a79b97d88944956d282e4a3655966379b}
+\hypertarget{kdtree_8c_a9d7413f2948dd8c519aa3f5cb91d0f69}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-init@{KDTreeNode\_\-init}}
+\index{KDTreeNode\_\-init@{KDTreeNode\_\-init}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-init ({\bf KDTreeNode} $\ast$ {\em self}, \/  PyObject $\ast$ {\em args}, \/  PyObject $\ast$ {\em kwds})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a9d7413f2948dd8c519aa3f5cb91d0f69}
+\hypertarget{kdtree_8c_a6ffefea35b25cbeccd44acc1a833544a}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-new@{KDTreeNode\_\-new}}
+\index{KDTreeNode\_\-new@{KDTreeNode\_\-new}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-new}]{\setlength{\rightskip}{0pt plus 5cm}static PyObject$\ast$ KDTreeNode\_\-new (PyTypeObject $\ast$ {\em type}, \/  PyObject $\ast$ {\em args}, \/  PyObject $\ast$ {\em kwds})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a6ffefea35b25cbeccd44acc1a833544a}
+\hypertarget{kdtree_8c_ad5fe0cf0ac9b49a4ad7e24a34613d0e8}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-run\_\-nn\_\-search@{KDTreeNode\_\-run\_\-nn\_\-search}}
+\index{KDTreeNode\_\-run\_\-nn\_\-search@{KDTreeNode\_\-run\_\-nn\_\-search}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-run\_\-nn\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}static PyObject $\ast$ KDTreeNode\_\-run\_\-nn\_\-search ({\bf KDTreeNode} $\ast$ {\em self}, \/  PyObject $\ast$ {\em args})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_ad5fe0cf0ac9b49a4ad7e24a34613d0e8}
+\hypertarget{kdtree_8c_ac990fbbb466d481e464e1c9db5b064b1}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-setcoords@{KDTreeNode\_\-setcoords}}
+\index{KDTreeNode\_\-setcoords@{KDTreeNode\_\-setcoords}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-setcoords}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-setcoords ({\bf KDTreeNode} $\ast$ {\em self}, \/  PyObject $\ast$ {\em value}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_ac990fbbb466d481e464e1c9db5b064b1}
+\hypertarget{kdtree_8c_ae4be6e4f408f67eeca3405d60ac3a74d}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-setleft@{KDTreeNode\_\-setleft}}
+\index{KDTreeNode\_\-setleft@{KDTreeNode\_\-setleft}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-setleft}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-setleft ({\bf KDTreeNode} $\ast$ {\em self}, \/  PyObject $\ast$ {\em value}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_ae4be6e4f408f67eeca3405d60ac3a74d}
+\hypertarget{kdtree_8c_ad4b7deeae2f1708cd418e9a913683265}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-setright@{KDTreeNode\_\-setright}}
+\index{KDTreeNode\_\-setright@{KDTreeNode\_\-setright}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-setright}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-setright ({\bf KDTreeNode} $\ast$ {\em self}, \/  PyObject $\ast$ {\em value}, \/  void $\ast$ {\em closure})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_ad4b7deeae2f1708cd418e9a913683265}
+\hypertarget{kdtree_8c_af0efa3ed1028e2da2e194a7a8af2cf8a}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-traverse@{KDTreeNode\_\-traverse}}
+\index{KDTreeNode\_\-traverse@{KDTreeNode\_\-traverse}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-traverse}]{\setlength{\rightskip}{0pt plus 5cm}static int KDTreeNode\_\-traverse ({\bf KDTreeNode} $\ast$ {\em self}, \/  visitproc {\em visit}, \/  void $\ast$ {\em arg})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_af0efa3ed1028e2da2e194a7a8af2cf8a}
+\hypertarget{kdtree_8c_a6aa6aec6c6d525c3085f02fd175cbb9f}{
+\index{kdtree.c@{kdtree.c}!largest\_\-dist@{largest\_\-dist}}
+\index{largest\_\-dist@{largest\_\-dist}!kdtree.c@{kdtree.c}}
+\subsubsection[{largest\_\-dist}]{\setlength{\rightskip}{0pt plus 5cm}static double largest\_\-dist (struct {\bf best\_\-pair} {\em best}\mbox{[}$\,$\mbox{]}, \/  int {\em count})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a6aa6aec6c6d525c3085f02fd175cbb9f}
+\hypertarget{kdtree_8c_a9819169541a86e3585e4a11c5c7f602e}{
+\index{kdtree.c@{kdtree.c}!nn\_\-search@{nn\_\-search}}
+\index{nn\_\-search@{nn\_\-search}!kdtree.c@{kdtree.c}}
+\subsubsection[{nn\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}static int nn\_\-search ({\bf KDTreeNode} $\ast$ {\em node}, \/  int {\em point\_\-num}, \/  double {\em search\_\-x}, \/  double {\em search\_\-y}, \/  struct {\bf best\_\-pair} {\em best}\mbox{[}$\,$\mbox{]}, \/  int {\em count}, \/  int {\em axis})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a9819169541a86e3585e4a11c5c7f602e}
+\hypertarget{kdtree_8c_a1d745a50ccff8a0396ff8351ebc527c3}{
+\index{kdtree.c@{kdtree.c}!pick\_\-axis@{pick\_\-axis}}
+\index{pick\_\-axis@{pick\_\-axis}!kdtree.c@{kdtree.c}}
+\subsubsection[{pick\_\-axis}]{\setlength{\rightskip}{0pt plus 5cm}static int pick\_\-axis (int {\em axis})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a1d745a50ccff8a0396ff8351ebc527c3}
+\hypertarget{kdtree_8c_aa6416c7f3f6a32077f30a804be586d68}{
+\index{kdtree.c@{kdtree.c}!sqdist@{sqdist}}
+\index{sqdist@{sqdist}!kdtree.c@{kdtree.c}}
+\subsubsection[{sqdist}]{\setlength{\rightskip}{0pt plus 5cm}static double sqdist (double {\em ax}, \/  double {\em bx}, \/  double {\em ay}, \/  double {\em by})\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_aa6416c7f3f6a32077f30a804be586d68}
+
+
+\subsection{Variable Documentation}
+\hypertarget{kdtree_8c_a45d07697dc1f06a4ad912aa082a65ed5}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-getseters@{KDTreeNode\_\-getseters}}
+\index{KDTreeNode\_\-getseters@{KDTreeNode\_\-getseters}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-getseters}]{\setlength{\rightskip}{0pt plus 5cm}PyGetSetDef {\bf KDTreeNode\_\-getseters}\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a45d07697dc1f06a4ad912aa082a65ed5}
+{\bfseries Initial value:}
+\begin{DoxyCode}
+ {
+  {"left", 
+   (getter)KDTreeNode_getleft, (setter)KDTreeNode_setleft,
+   "left node",
+   NULL},
+  {"right", 
+   (getter)KDTreeNode_getright, (setter)KDTreeNode_setright,
+   "right node",
+   NULL},
+  {"coords", 
+   (getter)KDTreeNode_getcoords, (setter)KDTreeNode_setcoords,
+   "node coordinates",
+   NULL},
+  {NULL}  
+}
+\end{DoxyCode}
+\hypertarget{kdtree_8c_a9e31f0ca5a431a6e68f0523603632e4c}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-members@{KDTreeNode\_\-members}}
+\index{KDTreeNode\_\-members@{KDTreeNode\_\-members}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-members}]{\setlength{\rightskip}{0pt plus 5cm}PyMemberDef {\bf KDTreeNode\_\-members}\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_a9e31f0ca5a431a6e68f0523603632e4c}
+{\bfseries Initial value:}
+\begin{DoxyCode}
+ {
+  {"number", T_INT, offsetof(KDTreeNode, number), 0,
+   "kd-tree node number"},
+  {NULL}  
+}
+\end{DoxyCode}
+\hypertarget{kdtree_8c_aba00912f85d48c951ee3802c73e459e2}{
+\index{kdtree.c@{kdtree.c}!KDTreeNode\_\-methods@{KDTreeNode\_\-methods}}
+\index{KDTreeNode\_\-methods@{KDTreeNode\_\-methods}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNode\_\-methods}]{\setlength{\rightskip}{0pt plus 5cm}PyMethodDef {\bf KDTreeNode\_\-methods}\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_aba00912f85d48c951ee3802c73e459e2}
+{\bfseries Initial value:}
+\begin{DoxyCode}
+ {
+  {"run_nn_search", (PyCFunction)KDTreeNode_run_nn_search, METH_VARARGS,
+   "Runs a nearest-neighbor search"
+  },
+  {NULL}  
+}
+\end{DoxyCode}
+\hypertarget{kdtree_8c_aed333a423a032ae874254710f0515a48}{
+\index{kdtree.c@{kdtree.c}!KDTreeNodeType@{KDTreeNodeType}}
+\index{KDTreeNodeType@{KDTreeNodeType}!kdtree.c@{kdtree.c}}
+\subsubsection[{KDTreeNodeType}]{\setlength{\rightskip}{0pt plus 5cm}PyTypeObject {\bf KDTreeNodeType}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_aed333a423a032ae874254710f0515a48}
+\hypertarget{kdtree_8c_afcd2b5e08091d3973eb552badcfec160}{
+\index{kdtree.c@{kdtree.c}!module\_\-methods@{module\_\-methods}}
+\index{module\_\-methods@{module\_\-methods}!kdtree.c@{kdtree.c}}
+\subsubsection[{module\_\-methods}]{\setlength{\rightskip}{0pt plus 5cm}PyMethodDef {\bf module\_\-methods}\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}
+\label{kdtree_8c_afcd2b5e08091d3973eb552badcfec160}
+{\bfseries Initial value:}
+\begin{DoxyCode}
+ {
+  {NULL}  
+}
+\end{DoxyCode}

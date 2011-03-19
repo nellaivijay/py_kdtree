@@ -1,0 +1,94 @@
+\hypertarget{namespacekdtree}{
+\section{kdtree Namespace Reference}
+\label{namespacekdtree}\index{kdtree@{kdtree}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classkdtree_1_1KDTreeNode}{KDTreeNode}
+\item 
+class \hyperlink{classkdtree_1_1PointData}{PointData}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+list \hyperlink{namespacekdtree_a68dd1b5c2ca51036f48cfb773ef665ac}{pl\_\-median} = pointList\mbox{[}median\mbox{]}
+\item 
+tuple \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} = add\_\-best(best, \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count}, node, search, num\_\-neighbors)
+\item 
+\hyperlink{namespacekdtree_a0ba21301aea56f1c2ef165f16bcc6af6}{near} = node.left
+\item 
+\hyperlink{namespacekdtree_a1098829259a7546f7778cfe19c86e50c}{far} = node.right
+\item 
+list \hyperlink{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}{largest} = best\mbox{[}\hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} -\/ 1\mbox{]}
+\item 
+int \hyperlink{namespacekdtree_a697ad02b362c4958d0497573757a329a}{search\_\-other} = 0
+\item 
+\hyperlink{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{diff} = neighbor\_\-coord-\/search\_\-coord
+\item 
+\hyperlink{namespacekdtree_aa6b03574baf9af70ad70c383f1276f53}{sq\_\-diff} = \hyperlink{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{diff}$\ast$\hyperlink{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{diff}
+\item 
+tuple \hyperlink{namespacekdtree_ab18cecee0f3d4292dc06665f88c9dcd1}{dist} = \hyperlink{namespacekdtree_ab18cecee0f3d4292dc06665f88c9dcd1}{dist}+(\hyperlink{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{diff} $\ast$ \hyperlink{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{diff})
+\item 
+\hyperlink{namespacekdtree_a0e2b4f0710247ad4a1bc44217b669f98}{last\_\-idx} = \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count}
+\item 
+list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = best\mbox{[}idx\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{
+\index{kdtree@{kdtree}!best\_\-count@{best\_\-count}}
+\index{best\_\-count@{best\_\-count}!kdtree@{kdtree}}
+\subsubsection[{best\_\-count}]{\setlength{\rightskip}{0pt plus 5cm}tuple {\bf kdtree::best\_\-count} = add\_\-best(best, {\bf best\_\-count}, node, search, num\_\-neighbors)}}
+\label{namespacekdtree_a5254def45bf553b4ed113993acde66ec}
+\hypertarget{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{
+\index{kdtree@{kdtree}!diff@{diff}}
+\index{diff@{diff}!kdtree@{kdtree}}
+\subsubsection[{diff}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::diff} = neighbor\_\-coord-\/search\_\-coord}}
+\label{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}
+\hypertarget{namespacekdtree_ab18cecee0f3d4292dc06665f88c9dcd1}{
+\index{kdtree@{kdtree}!dist@{dist}}
+\index{dist@{dist}!kdtree@{kdtree}}
+\subsubsection[{dist}]{\setlength{\rightskip}{0pt plus 5cm}tuple {\bf kdtree::dist} = {\bf dist}+({\bf diff} $\ast$ {\bf diff})}}
+\label{namespacekdtree_ab18cecee0f3d4292dc06665f88c9dcd1}
+\hypertarget{namespacekdtree_a1098829259a7546f7778cfe19c86e50c}{
+\index{kdtree@{kdtree}!far@{far}}
+\index{far@{far}!kdtree@{kdtree}}
+\subsubsection[{far}]{\setlength{\rightskip}{0pt plus 5cm}{\bf kdtree::far} = node.right}}
+\label{namespacekdtree_a1098829259a7546f7778cfe19c86e50c}
+\hypertarget{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}{
+\index{kdtree@{kdtree}!largest@{largest}}
+\index{largest@{largest}!kdtree@{kdtree}}
+\subsubsection[{largest}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::largest} = best\mbox{[}{\bf best\_\-count} -\/ 1\mbox{]}}}
+\label{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}
+\hypertarget{namespacekdtree_a0e2b4f0710247ad4a1bc44217b669f98}{
+\index{kdtree@{kdtree}!last\_\-idx@{last\_\-idx}}
+\index{last\_\-idx@{last\_\-idx}!kdtree@{kdtree}}
+\subsubsection[{last\_\-idx}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf kdtree::last\_\-idx} = {\bf best\_\-count}}}
+\label{namespacekdtree_a0e2b4f0710247ad4a1bc44217b669f98}
+\hypertarget{namespacekdtree_a0ba21301aea56f1c2ef165f16bcc6af6}{
+\index{kdtree@{kdtree}!near@{near}}
+\index{near@{near}!kdtree@{kdtree}}
+\subsubsection[{near}]{\setlength{\rightskip}{0pt plus 5cm}{\bf kdtree::near} = node.left}}
+\label{namespacekdtree_a0ba21301aea56f1c2ef165f16bcc6af6}
+\hypertarget{namespacekdtree_a2c9210668756589c874996518e7c43dc}{
+\index{kdtree@{kdtree}!pair@{pair}}
+\index{pair@{pair}!kdtree@{kdtree}}
+\subsubsection[{pair}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::pair} = best\mbox{[}idx\mbox{]}}}
+\label{namespacekdtree_a2c9210668756589c874996518e7c43dc}
+\hypertarget{namespacekdtree_a68dd1b5c2ca51036f48cfb773ef665ac}{
+\index{kdtree@{kdtree}!pl\_\-median@{pl\_\-median}}
+\index{pl\_\-median@{pl\_\-median}!kdtree@{kdtree}}
+\subsubsection[{pl\_\-median}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::pl\_\-median} = pointList\mbox{[}median\mbox{]}}}
+\label{namespacekdtree_a68dd1b5c2ca51036f48cfb773ef665ac}
+\hypertarget{namespacekdtree_a697ad02b362c4958d0497573757a329a}{
+\index{kdtree@{kdtree}!search\_\-other@{search\_\-other}}
+\index{search\_\-other@{search\_\-other}!kdtree@{kdtree}}
+\subsubsection[{search\_\-other}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf kdtree::search\_\-other} = 0}}
+\label{namespacekdtree_a697ad02b362c4958d0497573757a329a}
+\hypertarget{namespacekdtree_aa6b03574baf9af70ad70c383f1276f53}{
+\index{kdtree@{kdtree}!sq\_\-diff@{sq\_\-diff}}
+\index{sq\_\-diff@{sq\_\-diff}!kdtree@{kdtree}}
+\subsubsection[{sq\_\-diff}]{\setlength{\rightskip}{0pt plus 5cm}{\bf kdtree::sq\_\-diff} = {\bf diff}$\ast${\bf diff}}}
+\label{namespacekdtree_aa6b03574baf9af70ad70c383f1276f53}
