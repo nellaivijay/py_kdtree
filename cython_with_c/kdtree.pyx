@@ -22,12 +22,12 @@ cdef extern from "kdtree_raw.h":
 
   struct point_data:
     int num
-    int sz
-    int curr_axis
+    size_t sz
+    size_t curr_axis
     double * coords
 
-  extern void c_run_nn_search "run_nn_search" (kdtree_node *, int, point_data, int[])
-  extern kdtree_node * c_fill_tree "fill_tree" (point_data **, int, int)
+  extern void c_run_nn_search "run_nn_search" (kdtree_node *, size_t, point_data, int[])
+  extern kdtree_node * c_fill_tree "fill_tree" (point_data **, size_t)
   extern void free_tree(kdtree_node *)
 
 cdef extern from "stdlib.h":
@@ -48,8 +48,8 @@ cdef class KDTreeNode:
   def __init__(self, pointList):
     cdef point_data **points
     cdef double * coords = NULL
-    cdef int num_points, i, d, point_num
-    cdef int dims = 0
+    cdef size_t num_points, i, d, point_num
+    cdef size_t dims = 0
     if NULL == self.root:
       num_points = len(pointList)
       points = <point_data **>malloc(num_points * sizeof(point_data *))
@@ -70,6 +70,7 @@ cdef class KDTreeNode:
             raise MemoryError()
 
           points[i].num = point_num
+          points[i].sz = dims;
 
           points[i].coords = <double *>malloc(dims * sizeof(double))
           if not points[i].coords:
@@ -78,7 +79,7 @@ cdef class KDTreeNode:
           for d in xrange(dims):
             points[i].coords[d] = in_points[d]
 
-        self.root = c_fill_tree(points, num_points, dims)
+        self.root = c_fill_tree(points, num_points)
       finally:
         for i in xrange(num_points):
           if NULL != points[i]:
@@ -87,10 +88,10 @@ cdef class KDTreeNode:
             free(points[i])
         free(points)
 
-  cpdef run_nn_search(self, int search_num, search, int num_neighbors):
+  cpdef run_nn_search(self, int search_num, search, size_t num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
-    cdef int search_len = len(search)
+    cdef size_t search_len = len(search)
     cdef point_data pd
     pd.sz = search_len
     pd.num = search_num
@@ -99,7 +100,7 @@ cdef class KDTreeNode:
     if not pd.coords:
       raise MemoryError()
 
-    cdef int i
+    cdef size_t i
     for i in xrange(search_len):
       pd.coords[i] = search[i]
 
