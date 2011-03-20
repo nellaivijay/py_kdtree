@@ -18,6 +18,8 @@
 # http://code.google.com/p/python-kdtree/
 # and
 # http://en.wikipedia.org/wiki/Kd-tree
+import array
+
 cdef extern from "stdlib.h":
   void free(void* ptr)
   void* malloc(size_t size)
@@ -25,12 +27,6 @@ cdef extern from "stdlib.h":
 cdef struct best_pair:
   int node_num
   double dist
-
-cdef struct point_data:
-  int num
-  double *coords
-  size_t dims
-  size_t curr_axis
 
 # Note that taking the extra effort to make this a cdef class makes a 5x difference
 # in runtime speed on 100k rows
@@ -44,7 +40,7 @@ cdef class PointData:
 
   def __cinit__(self, num, coords):
     self.num = num
-    self.coords = coords
+    self.coords = array.array('d', coords)
     self.curr_axis = 0
     self.dims = len(coords)
 
@@ -90,35 +86,15 @@ cdef class PointData:
 
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
-  cdef point_data *data
+  cdef PointData data
   cdef KDTreeNode left
   cdef KDTreeNode right
 
-  def __cinit__(self, int number, coords):
+  def __init__(self, int number, coords):
     """Initializer to pass in the number of the node and its coordinates"""
-    cdef size_t dims = len(coords)
-    self.data = <point_data *>malloc(sizeof(point_data))
-    if not self.data:
-      raise MemoryError()
-    self.data.coords = <double *>malloc(dims * sizeof(double))
-    if not self.data.coords:
-      raise MemoryError()
-    cdef size_t i
-    for i in xrange(dims):
-      self.data.coords[i] = coords[i]
-    self.data.num = number
-    self.data.dims = dims
+    self.data = PointData(number, array.array('d', coords))
     self.left = None
     self.right = None
-
-  def __dealloc__(self):
-    """free the memory associated with this tree"""
-    if NULL != self.data:
-      if NULL != self.data.coords:
-        free(self.data.coords)
-        self.data.coords = NULL
-      free(self.data)
-      self.data = NULL
 
   property num:
     def __get__(self):
@@ -132,13 +108,12 @@ cdef class KDTreeNode:
     def __get__(self):
       return self.right
 
-  cpdef run_nn_search(self, search, size_t num_neighbors):
+  cpdef run_nn_search(self, PointData search, size_t num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the PointData search param."""
     
     search_coords = search.coords
     cdef size_t search_len = len(search_coords)
-    cdef point_data pd = mk_point_data(search_coords, search.num, search_len)
 
     # cdef best_pair[num_neighbors] won't work; Cython complains about wanting 
     # constants for allocation, so we need to dynamically allocate it
@@ -148,7 +123,7 @@ cdef class KDTreeNode:
 
     cdef size_t i
     try:
-      nn_search(self, pd, nearest, 0, num_neighbors, 0)
+      nn_search(self, search, nearest, 0, num_neighbors, 0)
       output = []
       for i in xrange(num_neighbors):
         output.append(nearest[i].node_num)
@@ -158,25 +133,6 @@ cdef class KDTreeNode:
       if NULL != nearest:
         free(nearest)
         nearest = NULL
-      if NULL != pd.coords:
-        free(pd.coords)
-        pd.coords = NULL
-
-cdef point_data mk_point_data(coords, size_t search_num, size_t search_sz):
-  """Creates a point_data structure from the input.  This allocates memory for 
-  the coords field of the point_data structure, so don't forget to free it."""
-  cdef point_data pd
-  pd.dims = search_sz
-  pd.num = search_num
-
-  pd.coords = <double *>malloc(search_sz * sizeof(double))
-  if not pd.coords:
-    raise MemoryError()
-
-  cdef size_t i
-  for i in xrange(search_sz):
-    pd.coords[i] = coords[i]
-  return pd
 
 cpdef print_preorder(KDTreeNode node):
   """Print the nodes of the tree in pre-order fashion."""
@@ -186,9 +142,10 @@ cpdef print_preorder(KDTreeNode node):
   print_preorder(node.left)
   print_preorder(node.right)
 
-cpdef KDTreeNode fill_tree(pointList, size_t depth=0):
+cdef KDTreeNode fill_tree_r(pointList, size_t depth):
   """Constructs a KD-tree and returns the root node.  pointList is a list of PointData elements."""
   if not pointList:
+    # TODO would using a null sentinel node make all of this run faster?
     return None
 
   cdef size_t dims = pointList[0].dims # assumes all points have the same dimension
@@ -205,9 +162,13 @@ cpdef KDTreeNode fill_tree(pointList, size_t depth=0):
   pl_median = pointList[median]
   cdef int next_depth = depth + 1
   cdef KDTreeNode node = KDTreeNode(pl_median.num, pl_median.coords)
-  node.left = fill_tree(pointList[0:median], next_depth)
-  node.right = fill_tree(pointList[median + 1:], next_depth)
+  node.left = fill_tree_r(pointList[0:median], next_depth)
+  node.right = fill_tree_r(pointList[median + 1:], next_depth)
   return node
+
+cpdef KDTreeNode fill_tree(pointList):
+  """Constructs a KD-tree and returns the root node.  pointList is a list of PointData elements."""
+  return fill_tree_r(pointList, 0)
 
 cdef size_t pick_axis(size_t depth, size_t dims):
   """Choose the axis to use based on the current depth and the number of dimensions.
@@ -219,7 +180,7 @@ cdef size_t pick_axis(size_t depth, size_t dims):
   return depth % dims
 
 # Searches for nearest neighbor of point using node as the root.
-cdef size_t nn_search(KDTreeNode node, point_data search, best_pair nearest[], \
+cdef size_t nn_search(KDTreeNode node, PointData search, best_pair nearest[], \
                    size_t best_count, size_t num_neighbors, size_t depth) except? -2:
   """Runs a nearest neighbor search on the given point, which is defined
   by the point number 'search_num' and search coordinates 'search'."""
@@ -231,12 +192,14 @@ cdef size_t nn_search(KDTreeNode node, point_data search, best_pair nearest[], \
   cdef int node_num = node.num
   cdef int search_num = search.num
 
-  cdef double neighbor_coord = node.data.coords[axis]
-  cdef double search_coord = search.coords[axis]
+  ncoords = node.data.coords
+  scoords = search.coords
+  cdef double neighbor_coord = ncoords[axis]
+  cdef double search_coord = scoords[axis]
 
   if node.left is None and node.right is None:
     if node_num != search_num:
-      best_count = add_best(nearest, best_count, node, search, num_neighbors)
+      best_count = add_best(nearest, best_count, node_num, ncoords, scoords, dims, num_neighbors)
     return best_count
 
 
@@ -256,7 +219,7 @@ cdef size_t nn_search(KDTreeNode node, point_data search, best_pair nearest[], \
 
   # If the current node is closer overall than the current best
   if node_num != search_num:
-    best_count = add_best(nearest, best_count, node, search, num_neighbors)
+    best_count = add_best(nearest, best_count, node_num, ncoords, scoords, dims, num_neighbors)
 
   cdef double largest = -1.0
   if best_count > 0:
@@ -279,7 +242,7 @@ cdef size_t nn_search(KDTreeNode node, point_data search, best_pair nearest[], \
       best_count = nn_search(far, search, nearest, best_count, num_neighbors, next_depth)
   return best_count
 
-cdef inline double sqdist(double a[], double b[], size_t dims) except? -2:
+cdef inline double sqdist(a, b, size_t dims) except? -2:
   """Calculates Euclidean distance between a and b"""
 
   cdef size_t k
@@ -290,8 +253,8 @@ cdef inline double sqdist(double a[], double b[], size_t dims) except? -2:
     dist = dist + (diff * diff)
   return dist
 
-cdef size_t add_best(best_pair nearest[], size_t best_count, KDTreeNode node, \
-                     point_data search, size_t num_neighbors) except? -2:
+cdef size_t add_best(best_pair nearest[], size_t best_count, int node_num, coords, \
+                     search_coords, size_t dims, size_t num_neighbors) except? -2:
   """
   Add the node_num to the list of best nodes if it is closer to the searched-for 
   node than any current nodes.
@@ -302,9 +265,9 @@ cdef size_t add_best(best_pair nearest[], size_t best_count, KDTreeNode node, \
   # before assigning it as the final best choice to ensure it is not
   # equal to the searched-for point
 
-  cdef double sd = sqdist(node.data.coords, search.coords, search.dims)
+  cdef double sd = sqdist(coords, search_coords, dims)
 
-  cdef best_pair candidate = best_pair(node.num, sd)
+  cdef best_pair candidate = best_pair(node_num, sd)
   # search through linearly to maintain sorted order
   cdef size_t last_idx
   if best_count < num_neighbors:
