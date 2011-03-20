@@ -22,6 +22,16 @@ cdef extern from "stdlib.h":
   void free(void* ptr)
   void* malloc(size_t size)
 
+cdef struct best_pair:
+  int node_num
+  double dist
+
+cdef struct point_data:
+  int num
+  double *coords
+  size_t dims
+  size_t curr_axis
+
 # Note that taking the extra effort to make this a cdef class makes a 5x difference
 # in runtime speed on 100k rows
 cdef class PointData:
@@ -77,16 +87,6 @@ cdef class PointData:
       return self.coords
     def __set__(self, object value):
       self.coords = value
-
-cdef struct best_pair:
-  int node_num
-  double dist
-
-cdef struct point_data:
-  int num
-  double *coords
-  size_t dims
-  size_t curr_axis
 
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
@@ -155,10 +155,16 @@ cdef class KDTreeNode:
 
       return output
     finally:
-      free(nearest)
+      if NULL != nearest:
+        free(nearest)
+        nearest = NULL
+      if NULL != pd.coords:
+        free(pd.coords)
+        pd.coords = NULL
 
 cdef point_data mk_point_data(coords, size_t search_num, size_t search_sz):
-  """Creates a point_data structure from the input."""
+  """Creates a point_data structure from the input.  This allocates memory for 
+  the coords field of the point_data structure, so don't forget to free it."""
   cdef point_data pd
   pd.dims = search_sz
   pd.num = search_num
