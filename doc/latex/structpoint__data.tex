@@ -1,0 +1,58 @@
+\hypertarget{structpoint__data}{
+\section{point\_\-data Struct Reference}
+\label{structpoint__data}\index{point\_\-data@{point\_\-data}}
+}
+
+
+A container for k-\/dimensional space point data.  
+
+
+
+
+{\ttfamily \#include $<$kdtree\_\-raw.h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{structpoint__data_ad644f53aa795445d1f8e2a96f5bbffcd}{num}
+\item 
+double $\ast$ \hyperlink{structpoint__data_adf36d0d155b6f048bf8b238f6f382852}{coords}
+\item 
+size\_\-t \hyperlink{structpoint__data_a0a8a39666c3f29a7ba173e05637798d7}{sz}
+\item 
+size\_\-t \hyperlink{structpoint__data_ab4fdf1640319330eaaa312dc128d15f4}{curr\_\-axis}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A container for k-\/dimensional space point data. This differs from \hyperlink{structkdtree__node}{kdtree\_\-node} in that it is only used for input and searching for nearest neighbor. 
+\begin{DoxyParams}{Parameters}
+\item[{\em num}]The node number for the input data. Should match with a \hyperlink{structkdtree__node}{kdtree\_\-node} num. \item[{\em coords}]The coordinates in the k-\/dimensional space. \item[{\em sz}]The number of dimensions. \item[{\em curr\_\-axis}]The current axis being searched/split upon. \end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structpoint__data_adf36d0d155b6f048bf8b238f6f382852}{
+\index{point\_\-data@{point\_\-data}!coords@{coords}}
+\index{coords@{coords}!point_data@{point\_\-data}}
+\subsubsection[{coords}]{\setlength{\rightskip}{0pt plus 5cm}double$\ast$ {\bf point\_\-data::coords}}}
+\label{structpoint__data_adf36d0d155b6f048bf8b238f6f382852}
+\hypertarget{structpoint__data_ab4fdf1640319330eaaa312dc128d15f4}{
+\index{point\_\-data@{point\_\-data}!curr\_\-axis@{curr\_\-axis}}
+\index{curr\_\-axis@{curr\_\-axis}!point_data@{point\_\-data}}
+\subsubsection[{curr\_\-axis}]{\setlength{\rightskip}{0pt plus 5cm}size\_\-t {\bf point\_\-data::curr\_\-axis}}}
+\label{structpoint__data_ab4fdf1640319330eaaa312dc128d15f4}
+\hypertarget{structpoint__data_ad644f53aa795445d1f8e2a96f5bbffcd}{
+\index{point\_\-data@{point\_\-data}!num@{num}}
+\index{num@{num}!point_data@{point\_\-data}}
+\subsubsection[{num}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf point\_\-data::num}}}
+\label{structpoint__data_ad644f53aa795445d1f8e2a96f5bbffcd}
+\hypertarget{structpoint__data_a0a8a39666c3f29a7ba173e05637798d7}{
+\index{point\_\-data@{point\_\-data}!sz@{sz}}
+\index{sz@{sz}!point_data@{point\_\-data}}
+\subsubsection[{sz}]{\setlength{\rightskip}{0pt plus 5cm}size\_\-t {\bf point\_\-data::sz}}}
+\label{structpoint__data_a0a8a39666c3f29a7ba173e05637798d7}
+
+
+The documentation for this struct was generated from the following file:\begin{DoxyCompactItemize}
+\item 
+cython\_\-with\_\-c/\hyperlink{kdtree__raw_8h}{kdtree\_\-raw.h}\end{DoxyCompactItemize}

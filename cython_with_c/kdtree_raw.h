@@ -17,8 +17,15 @@
 #include <string.h>
 
 /* Structs */
-typedef struct kdtree_node kdtree_node;
 
+typedef struct kdtree_node kdtree_node;
+/**
+ * A node representing a KD tree.
+ * @param coords The coordinates in the k-dimensional space.
+ * @param num The node number for the KD tree node.
+ * @param left The node's left child.
+ * @param right The node's right child.
+ */
 struct kdtree_node{
 	double *coords;
   int num;
@@ -26,11 +33,20 @@ struct kdtree_node{
   kdtree_node *right;
 };
 
+/**
+ * A container for k-dimensional space point data.  This differs from kdtree_node 
+ * in that it is only used for input and searching for nearest neighbor.
+ * @param num The node number for the input data.  Should match with a kdtree_node
+ * num.
+ * @param coords The coordinates in the k-dimensional space.
+ * @param sz The number of dimensions.
+ * @param curr_axis The current axis being searched/split upon.
+ */
 typedef struct point_data {
 	int num;
+	double *coords;
 	size_t sz;
 	size_t curr_axis;
-	double *coords;
 } point_data;
 
 /* prototypes */

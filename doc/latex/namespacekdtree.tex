@@ -14,13 +14,13 @@ class \hyperlink{classkdtree_1_1PointData}{PointData}
 \item 
 list \hyperlink{namespacekdtree_a68dd1b5c2ca51036f48cfb773ef665ac}{pl\_\-median} = pointList\mbox{[}median\mbox{]}
 \item 
-tuple \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} = add\_\-best(best, \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count}, node, search, num\_\-neighbors)
+tuple \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} = add\_\-best(nearest, \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count}, node, search, num\_\-neighbors)
 \item 
 \hyperlink{namespacekdtree_a0ba21301aea56f1c2ef165f16bcc6af6}{near} = node.left
 \item 
 \hyperlink{namespacekdtree_a1098829259a7546f7778cfe19c86e50c}{far} = node.right
 \item 
-list \hyperlink{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}{largest} = best\mbox{[}\hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} -\/ 1\mbox{]}
+list \hyperlink{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}{largest} = nearest\mbox{[}\hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count} -\/ 1\mbox{]}
 \item 
 int \hyperlink{namespacekdtree_a697ad02b362c4958d0497573757a329a}{search\_\-other} = 0
 \item 
@@ -32,7 +32,7 @@ tuple \hyperlink{namespacekdtree_ab18cecee0f3d4292dc06665f88c9dcd1}{dist} = \hyp
 \item 
 \hyperlink{namespacekdtree_a0e2b4f0710247ad4a1bc44217b669f98}{last\_\-idx} = \hyperlink{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{best\_\-count}
 \item 
-list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = best\mbox{[}idx\mbox{]}
+list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = nearest\mbox{[}idx\mbox{]}
 \end{DoxyCompactItemize}
 
 
@@ -40,7 +40,7 @@ list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = best\
 \hypertarget{namespacekdtree_a5254def45bf553b4ed113993acde66ec}{
 \index{kdtree@{kdtree}!best\_\-count@{best\_\-count}}
 \index{best\_\-count@{best\_\-count}!kdtree@{kdtree}}
-\subsubsection[{best\_\-count}]{\setlength{\rightskip}{0pt plus 5cm}tuple {\bf kdtree::best\_\-count} = add\_\-best(best, {\bf best\_\-count}, node, search, num\_\-neighbors)}}
+\subsubsection[{best\_\-count}]{\setlength{\rightskip}{0pt plus 5cm}tuple {\bf kdtree::best\_\-count} = add\_\-best(nearest, {\bf best\_\-count}, node, search, num\_\-neighbors)}}
 \label{namespacekdtree_a5254def45bf553b4ed113993acde66ec}
 \hypertarget{namespacekdtree_acdecd5b85843a2d9caa9703f3d246c5a}{
 \index{kdtree@{kdtree}!diff@{diff}}
@@ -60,7 +60,7 @@ list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = best\
 \hypertarget{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}{
 \index{kdtree@{kdtree}!largest@{largest}}
 \index{largest@{largest}!kdtree@{kdtree}}
-\subsubsection[{largest}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::largest} = best\mbox{[}{\bf best\_\-count} -\/ 1\mbox{]}}}
+\subsubsection[{largest}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::largest} = nearest\mbox{[}{\bf best\_\-count} -\/ 1\mbox{]}}}
 \label{namespacekdtree_a8ae4f604fa3b331f0e1857ef7988dbed}
 \hypertarget{namespacekdtree_a0e2b4f0710247ad4a1bc44217b669f98}{
 \index{kdtree@{kdtree}!last\_\-idx@{last\_\-idx}}
@@ -75,7 +75,7 @@ list \hyperlink{namespacekdtree_a2c9210668756589c874996518e7c43dc}{pair} = best\
 \hypertarget{namespacekdtree_a2c9210668756589c874996518e7c43dc}{
 \index{kdtree@{kdtree}!pair@{pair}}
 \index{pair@{pair}!kdtree@{kdtree}}
-\subsubsection[{pair}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::pair} = best\mbox{[}idx\mbox{]}}}
+\subsubsection[{pair}]{\setlength{\rightskip}{0pt plus 5cm}list {\bf kdtree::pair} = nearest\mbox{[}idx\mbox{]}}}
 \label{namespacekdtree_a2c9210668756589c874996518e7c43dc}
 \hypertarget{namespacekdtree_a68dd1b5c2ca51036f48cfb773ef665ac}{
 \index{kdtree@{kdtree}!pl\_\-median@{pl\_\-median}}

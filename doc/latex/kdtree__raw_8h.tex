@@ -1,0 +1,108 @@
+\hypertarget{kdtree__raw_8h}{
+\section{cython\_\-with\_\-c/kdtree\_\-raw.h File Reference}
+\label{kdtree__raw_8h}\index{cython\_\-with\_\-c/kdtree\_\-raw.h@{cython\_\-with\_\-c/kdtree\_\-raw.h}}
+}
+{\ttfamily \#include $<$stdio.h$>$}\par
+{\ttfamily \#include $<$string.h$>$}\par
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structkdtree__node}{kdtree\_\-node}
+\begin{DoxyCompactList}\small\item\em A node representing a KD tree. \item\end{DoxyCompactList}\item 
+struct \hyperlink{structpoint__data}{point\_\-data}
+\begin{DoxyCompactList}\small\item\em A container for k-\/dimensional space point data. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structkdtree__node}{kdtree\_\-node} \hyperlink{kdtree__raw_8h_a6f0bfc704f123b9ceb4b1b2a1031a284}{kdtree\_\-node}
+\item 
+typedef struct \hyperlink{structpoint__data}{point\_\-data} \hyperlink{kdtree__raw_8h_a1dc1d087fb7129fb67373fb663738b82}{point\_\-data}
+\begin{DoxyCompactList}\small\item\em A container for k-\/dimensional space point data. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{kdtree__raw_8h_ad245c82ed5c6afec3941578d2dfc9d19}{run\_\-nn\_\-search} (\hyperlink{structkdtree__node}{kdtree\_\-node} $\ast$root, size\_\-t num\_\-neighbors, \hyperlink{structpoint__data}{point\_\-data} pd, int best\_\-nums\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em Initializes the nearest neighbor search point and starts the search. \item\end{DoxyCompactList}\item 
+\hyperlink{structkdtree__node}{kdtree\_\-node} $\ast$ \hyperlink{kdtree__raw_8h_ac6f0b44fb0c280e06cd9ec5fe5490073}{fill\_\-tree} (\hyperlink{structpoint__data}{point\_\-data} $\ast$$\ast$points, size\_\-t num\_\-points)
+\begin{DoxyCompactList}\small\item\em Builds up a tree using the given \hyperlink{structpoint__data}{point\_\-data}. \item\end{DoxyCompactList}\item 
+void \hyperlink{kdtree__raw_8h_afb727266d4a5034530dc8d25dcdec9b9}{free\_\-tree} (\hyperlink{structkdtree__node}{kdtree\_\-node} $\ast$node)
+\begin{DoxyCompactList}\small\item\em Recursively free()s the elements of the tree. \item\end{DoxyCompactList}\item 
+double \hyperlink{kdtree__raw_8h_ab1831ab5a86e21da4fefdd75b9e310d3}{sqdist} (double a\mbox{[}$\,$\mbox{]}, double b\mbox{[}$\,$\mbox{]}, size\_\-t dims)
+\begin{DoxyCompactList}\small\item\em Computes the Euclidean distance between two k-\/dimensional points. \item\end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{kdtree__raw_8h_a6f0bfc704f123b9ceb4b1b2a1031a284}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!kdtree\_\-node@{kdtree\_\-node}}
+\index{kdtree\_\-node@{kdtree\_\-node}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{kdtree\_\-node}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf kdtree\_\-node} {\bf kdtree\_\-node}}}
+\label{kdtree__raw_8h_a6f0bfc704f123b9ceb4b1b2a1031a284}
+\hypertarget{kdtree__raw_8h_a1dc1d087fb7129fb67373fb663738b82}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!point\_\-data@{point\_\-data}}
+\index{point\_\-data@{point\_\-data}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{point\_\-data}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf point\_\-data}  {\bf point\_\-data}}}
+\label{kdtree__raw_8h_a1dc1d087fb7129fb67373fb663738b82}
+
+
+A container for k-\/dimensional space point data. 
+
+This differs from \hyperlink{structkdtree__node}{kdtree\_\-node} in that it is only used for input and searching for nearest neighbor. 
+\begin{DoxyParams}{Parameters}
+\item[{\em num}]The node number for the input data. Should match with a \hyperlink{structkdtree__node}{kdtree\_\-node} num. \item[{\em coords}]The coordinates in the k-\/dimensional space. \item[{\em sz}]The number of dimensions. \item[{\em curr\_\-axis}]The current axis being searched/split upon. \end{DoxyParams}
+
+
+\subsection{Function Documentation}
+\hypertarget{kdtree__raw_8h_ac6f0b44fb0c280e06cd9ec5fe5490073}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!fill\_\-tree@{fill\_\-tree}}
+\index{fill\_\-tree@{fill\_\-tree}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{fill\_\-tree}]{\setlength{\rightskip}{0pt plus 5cm}{\bf kdtree\_\-node}$\ast$ fill\_\-tree ({\bf point\_\-data} $\ast$$\ast$ {\em points}, \/  size\_\-t {\em num\_\-points})}}
+\label{kdtree__raw_8h_ac6f0b44fb0c280e06cd9ec5fe5490073}
+
+
+Builds up a tree using the given \hyperlink{structpoint__data}{point\_\-data}. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em points}]The points\_\-data used to build the tree. This function copies the pointers in this parameter so the caller is free to dispose of it after the call. \item[\mbox{$\leftarrow$} {\em num\_\-points}]The number of points in the points\_\-data array. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A newly malloc'd KD tree node. 
+\end{DoxyReturn}
+\hypertarget{kdtree__raw_8h_afb727266d4a5034530dc8d25dcdec9b9}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!free\_\-tree@{free\_\-tree}}
+\index{free\_\-tree@{free\_\-tree}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{free\_\-tree}]{\setlength{\rightskip}{0pt plus 5cm}void free\_\-tree ({\bf kdtree\_\-node} $\ast$ {\em node})}}
+\label{kdtree__raw_8h_afb727266d4a5034530dc8d25dcdec9b9}
+
+
+Recursively free()s the elements of the tree. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em node}]The root of the tree to free. \end{DoxyParams}
+\hypertarget{kdtree__raw_8h_ad245c82ed5c6afec3941578d2dfc9d19}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!run\_\-nn\_\-search@{run\_\-nn\_\-search}}
+\index{run\_\-nn\_\-search@{run\_\-nn\_\-search}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{run\_\-nn\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}void run\_\-nn\_\-search ({\bf kdtree\_\-node} $\ast$ {\em root}, \/  size\_\-t {\em num\_\-neighbors}, \/  {\bf point\_\-data} {\em search}, \/  int {\em best\_\-nums}\mbox{[}$\,$\mbox{]})}}
+\label{kdtree__raw_8h_ad245c82ed5c6afec3941578d2dfc9d19}
+
+
+Initializes the nearest neighbor search point and starts the search. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em root}]The node to start the nearest neighbor search at. \item[\mbox{$\leftarrow$} {\em search}]The point for which the nearest neighbor search is being done. \item[\mbox{$\leftarrow$} {\em best\_\-nums}]The nearest neighbors node numbers. Will be filled in by this function. \end{DoxyParams}
+\hypertarget{kdtree__raw_8h_ab1831ab5a86e21da4fefdd75b9e310d3}{
+\index{kdtree\_\-raw.h@{kdtree\_\-raw.h}!sqdist@{sqdist}}
+\index{sqdist@{sqdist}!kdtree_raw.h@{kdtree\_\-raw.h}}
+\subsubsection[{sqdist}]{\setlength{\rightskip}{0pt plus 5cm}double sqdist (double {\em a}\mbox{[}$\,$\mbox{]}, \/  double {\em b}\mbox{[}$\,$\mbox{]}, \/  size\_\-t {\em dims})}}
+\label{kdtree__raw_8h_ab1831ab5a86e21da4fefdd75b9e310d3}
+
+
+Computes the Euclidean distance between two k-\/dimensional points. 
+
+
+\begin{DoxyParams}{Parameters}
+\item[\mbox{$\leftarrow$} {\em a}]The first point. \item[\mbox{$\leftarrow$} {\em b}]The second point. \item[\mbox{$\leftarrow$} {\em dims}]The number of dimensions in each point. \end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The Euclidean distance between a and b. 
+\end{DoxyReturn}

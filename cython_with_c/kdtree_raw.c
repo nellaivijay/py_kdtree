@@ -387,7 +387,7 @@ static size_t nn_search(
   return best_count;
 }
 
-/* 
+/** 
  * Initializes the nearest neighbor search point and starts the search.
  *
  * @param [in] root The node to start the nearest neighbor search at.
