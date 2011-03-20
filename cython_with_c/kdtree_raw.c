@@ -139,7 +139,7 @@ static point_data **slice(point_data **points, size_t start, size_t end) {
  * Builds up a tree using the given point_data.  
  * @param [in] points The points_data used to build the tree.  This function copies 
  * the pointers in this parameter so the caller is free to dispose of it after 
- * the call.
+ * the call.  Note that the curr_axis field will be modified by this function.
  * @param [in] num_points The number of points in the points_data array.
  * @param [in] depth The current depth of the tree.  Used to correctly sort and 
  * split the points
@@ -150,15 +150,17 @@ static kdtree_node * fill_tree_r(point_data **points, size_t num_points, size_t 
 		return NULL;
 	}
 
-	size_t dims = points[0]->sz;
+	size_t dims = points[0]->dims;
 
 	kdtree_node *node = malloc(sizeof(kdtree_node));
 	if (NULL == node) {
 		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 		exit(OOM);
 	}
+	/*memset(node, 0, sizeof *node);*/
 	node->left = NULL;
 	node->right = NULL;
+	node->data = NULL;
 
 	size_t axis = pick_axis(depth, dims);
 	/* Sort the points by axis; we need to mod the current axis before sorting to get
@@ -176,16 +178,27 @@ static kdtree_node * fill_tree_r(point_data **points, size_t num_points, size_t 
 	size_t right_sz = num_points - median - 1;
 
 	point_data *p_median = points[median];
-	node->num = p_median->num;
-
-	size_t coord_size = dims * sizeof(double);
-	node->coords = malloc(coord_size);
-	if (NULL == node->coords) {
+	/* Set up the node's point data */
+	size_t data_sz = sizeof(*node->data);
+	node->data = malloc(data_sz);
+	if (NULL == node->data) {
 		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
 		exit(OOM);
 	}
-	/* copy points over */
-	memcpy(node->coords, p_median->coords, coord_size);
+	node->data->coords = NULL;
+
+	size_t coord_size = dims * sizeof(double);
+	node->data->coords = malloc(coord_size);
+	if (NULL == node->data->coords) {
+		fprintf(stderr, "Out of memory at %s: %d\n", __FILE__, __LINE__);
+		exit(OOM);
+	}
+	/* deep copy points over */
+	memcpy(node->data->coords, p_median->coords, coord_size);
+
+	node->data->dims = p_median->dims;
+	node->data->num = p_median->num;
+	node->data->curr_axis = axis;
 
 	/* Now divide and recurse left/right */
 	size_t next_depth = depth + 1;
@@ -226,17 +239,23 @@ extern void free_tree(kdtree_node * node) {
 	if (NULL == node) {
 		return;
 	}
+	if (NULL != node->data) {
+		if (NULL != node->data->coords) {
+			free(node->data->coords);
+			node->data->coords = NULL;
+		}
+		free(node->data);
+		node->data = NULL;
+	}
 	if (NULL != node->right) {
 		free_tree(node->right);
+		node->right = NULL;
 	}
 	if (NULL != node->left) {
 		free_tree(node->left);
-	}
-	if (NULL != node->coords) {
-		free(node->coords);
+		node->left = NULL;
 	}
 	free(node);
-	/* TODO think this needs to be a pointer to a pointer for this NULL to work. */
 	node = NULL;
 }
 
@@ -263,7 +282,7 @@ static size_t add_best(
 		point_data search, 
 		size_t num_neighbors) {
 
-	double sd = sqdist(neighbor->coords, search.coords, search.sz);
+	double sd = sqdist(neighbor->data->coords, search.coords, search.dims);
 	size_t last_idx;
 	if (best_count < num_neighbors) {
 		last_idx = best_count;
@@ -273,7 +292,7 @@ static size_t add_best(
 
 	size_t idx;
 	best_pair candidate;
-	candidate.node_num = neighbor->num;
+	candidate.node_num = neighbor->data->num;
 	candidate.dist = sd;
 
 	best_pair pair;
@@ -326,11 +345,11 @@ static size_t nn_search(
 	}
 	
 	int search_num = search.num;
-	size_t dims = search.sz;
+	size_t dims = search.dims;
 	size_t axis = pick_axis(depth, dims);
 
-	int node_num = node->num;
-	double neighbor_coord = node->coords[axis];
+	int node_num = node->data->num;
+	double neighbor_coord = node->data->coords[axis];
 	double search_coord = search.coords[axis];
 
   /* we need to check each node before assigning it as the final best choice to 

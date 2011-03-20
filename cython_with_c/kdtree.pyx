@@ -14,17 +14,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cdef extern from "kdtree_raw.h":
-  struct kdtree_node:
-    int num
-    double *coords
-    kdtree_node * left
-    kdtree_node * right
-
   struct point_data:
     int num
-    size_t sz
-    size_t curr_axis
     double * coords
+    size_t dims
+    size_t curr_axis
+
+  struct kdtree_node:
+    point_data *data
+    kdtree_node *left
+    kdtree_node *right
 
   extern void c_run_nn_search "run_nn_search" (kdtree_node *, size_t, point_data, int[])
   extern kdtree_node * c_fill_tree "fill_tree" (point_data **, size_t)
@@ -70,7 +69,7 @@ cdef class KDTreeNode:
             raise MemoryError()
 
           points[i].num = point_num
-          points[i].sz = dims;
+          points[i].dims = dims;
 
           points[i].coords = <double *>malloc(dims * sizeof(double))
           if not points[i].coords:
@@ -85,15 +84,18 @@ cdef class KDTreeNode:
           if NULL != points[i]:
             if NULL != points[i].coords:
               free(points[i].coords)
+              points[i].coords = NULL
             free(points[i])
+            points[i] = NULL
         free(points)
+        points = NULL
 
   cpdef run_nn_search(self, int search_num, search, size_t num_neighbors):
     """Runs a nearest neighbor search on the given point, which is defined
     by the point number 'search_num' and search coordinates 'search'."""
     cdef size_t search_len = len(search)
     cdef point_data pd
-    pd.sz = search_len
+    pd.dims = search_len
     pd.num = search_num
 
     pd.coords = <double *>malloc(search_len * sizeof(double))

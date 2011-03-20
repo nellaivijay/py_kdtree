@@ -18,36 +18,34 @@
 
 /* Structs */
 
-typedef struct kdtree_node kdtree_node;
-/**
- * A node representing a KD tree.
- * @param coords The coordinates in the k-dimensional space.
- * @param num The node number for the KD tree node.
- * @param left The node's left child.
- * @param right The node's right child.
- */
-struct kdtree_node{
-	double *coords;
-  int num;
-	kdtree_node *left;
-  kdtree_node *right;
-};
-
 /**
  * A container for k-dimensional space point data.  This differs from kdtree_node 
  * in that it is only used for input and searching for nearest neighbor.
  * @param num The node number for the input data.  Should match with a kdtree_node
  * num.
  * @param coords The coordinates in the k-dimensional space.
- * @param sz The number of dimensions.
+ * @param dims The number of dimensions.
  * @param curr_axis The current axis being searched/split upon.
  */
 typedef struct point_data {
 	int num;
 	double *coords;
-	size_t sz;
+	size_t dims;
 	size_t curr_axis;
 } point_data;
+
+typedef struct kdtree_node kdtree_node;
+/**
+ * A node representing a KD tree.
+ * @param point_data The information regarding node's point in k-dimensional space.
+ * @param left The node's left child.
+ * @param right The node's right child.
+ */
+struct kdtree_node{
+	point_data *data;
+	kdtree_node *left;
+  kdtree_node *right;
+};
 
 /* prototypes */
 extern void run_nn_search(kdtree_node *root, 

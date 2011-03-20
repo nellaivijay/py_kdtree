@@ -84,38 +84,45 @@ cdef struct best_pair:
 
 cdef struct point_data:
   int num
-  size_t sz
-  size_t curr_axis
   double *coords
+  size_t dims
+  size_t curr_axis
 
 cdef class KDTreeNode:
   """A C extension class to the KDTree C code"""
-  cdef int num
-  cdef double *coords
+  cdef point_data *data
   cdef KDTreeNode left
   cdef KDTreeNode right
 
   def __cinit__(self, int number, coords):
     """Initializer to pass in the number of the node and its coordinates"""
     cdef size_t dims = len(coords)
-    self.coords = <double *>malloc(dims * sizeof(double))
-    if not self.coords:
+    self.data = <point_data *>malloc(sizeof(point_data))
+    if not self.data:
+      raise MemoryError()
+    self.data.coords = <double *>malloc(dims * sizeof(double))
+    if not self.data.coords:
       raise MemoryError()
     cdef size_t i
     for i in xrange(dims):
-      self.coords[i] = coords[i]
-    self.num = number
+      self.data.coords[i] = coords[i]
+    self.data.num = number
+    self.data.dims = dims
     self.left = None
     self.right = None
 
   def __dealloc__(self):
     """free the memory associated with this tree"""
-    if NULL != self.coords:
-      free(self.coords)
+    if NULL != self.data:
+      if NULL != self.data.coords:
+        free(self.data.coords)
+        self.data.coords = NULL
+      free(self.data)
+      self.data = NULL
 
-  property number:
+  property num:
     def __get__(self):
-      return self.number
+      return self.data.num
 
   property left:
     def __get__(self):
@@ -153,7 +160,7 @@ cdef class KDTreeNode:
 cdef point_data mk_point_data(coords, size_t search_num, size_t search_sz):
   """Creates a point_data structure from the input."""
   cdef point_data pd
-  pd.sz = search_sz
+  pd.dims = search_sz
   pd.num = search_num
 
   pd.coords = <double *>malloc(search_sz * sizeof(double))
@@ -169,7 +176,7 @@ cpdef print_preorder(KDTreeNode node):
   """Print the nodes of the tree in pre-order fashion."""
   if node is None:
     return
-  print "%d [%f,%f]" % (node.num, node.coords[0], node.coords[1])
+  print "%d [%f,%f]" % (node.num, node.data.coords[0], node.data.coords[1])
   print_preorder(node.left)
   print_preorder(node.right)
 
@@ -213,12 +220,12 @@ cdef size_t nn_search(KDTreeNode node, point_data search, best_pair nearest[], \
   if node is None:
     return best_count
 
-  cdef size_t dims = search.sz
+  cdef size_t dims = search.dims
   cdef size_t axis = pick_axis(depth, dims)
   cdef int node_num = node.num
   cdef int search_num = search.num
 
-  cdef double neighbor_coord = node.coords[axis]
+  cdef double neighbor_coord = node.data.coords[axis]
   cdef double search_coord = search.coords[axis]
 
   if node.left is None and node.right is None:
@@ -289,7 +296,7 @@ cdef size_t add_best(best_pair nearest[], size_t best_count, KDTreeNode node, \
   # before assigning it as the final best choice to ensure it is not
   # equal to the searched-for point
 
-  cdef double sd = sqdist(node.coords, search.coords, search.sz)
+  cdef double sd = sqdist(node.data.coords, search.coords, search.dims)
 
   cdef best_pair candidate = best_pair(node.num, sd)
   # search through linearly to maintain sorted order
