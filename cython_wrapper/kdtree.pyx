@@ -38,13 +38,13 @@ cdef class PointData:
   cdef object coords
   cdef size_t dims
 
-  def __cinit__(self, num, coords):
+  def __cinit__(self, int num, coords):
     self.num = num
     self.coords = array.array('d', coords)
     self.curr_axis = 0
     self.dims = len(coords)
 
-  def __cmp__(self, other):
+  def __cmp__(self, PointData other):
     if other is None:
       return -1
     axis = self.curr_axis
